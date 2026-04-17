@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ShieldNetX</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 320px; background: #0a0a0f; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1a1a3a; }
+    .logo { font-size: 28px; }
+    .brand { font-size: 16px; font-weight: 800; }
+    .tagline { font-size: 10px; color: #666; letter-spacing: 1px; }
+    .status { background: #00ff8822; border: 1px solid #00ff88; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #00ff88; margin-left: auto; }
+    .last-scan { background: #0d0d1a; border: 1px solid #1a1a3a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .last-scan-title { font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 10px; }
+    .score-row { display: flex; align-items: center; justify-content: space-between; }
+    .score-big { font-size: 40px; font-weight: 900; }
+    .level { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+    .url-text { font-size: 11px; color: #666; margin-top: 8px; word-break: break-all; }
+    .no-scan { text-align: center; color: #444; font-size: 13px; padding: 20px 0; }
+    .footer { text-align: center; font-size: 10px; color: #333; letter-spacing: 1px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🛡️</div>
+    <div>
+      <div class="brand">ShieldNetX</div>
+      <div class="tagline">CYBER THREAT INTELLIGENCE</div>
+    </div>
+    <div class="status">● ACTIVE</div>
+  </div>
+  <div class="last-scan">
+    <div class="last-scan-title">LAST SCANNED LINK</div>
+    <div id="scan-content">
+      <div class="no-scan">No links scanned yet.<br>Browse normally — we protect you silently.</div>
+    </div>
+  </div>
+  <div class="footer">SHIELDNETX IS PROTECTING YOU 🛡️</div>
+  <script>
+    const colors = { CRITICAL: "#ff2d2d", HIGH: "#ff6b00", MEDIUM: "#ffd000", LOW: "#00c2ff", SAFE: "#00ff88" };
+    
+    function show(score, level, url) {
+      const color = colors[level] || "#00ff88";
+      document.getElementById("scan-content").innerHTML = `
+        <div class="score-row">
+          <div class="score-big" style="color:${color}">${score}</div>
+          <div class="level" style="background:${color}22;color:${color};border:1px solid ${color}44">${level}</div>
+        </div>
+        <div class="url-text">${url || ""}</div>
+      `;
+    }
+
+    // First check active tab URL for score/level params
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      const tab = tabs[0];
+      if (tab && tab.url && tab.url.includes("blocked.html")) {
+        const params = new URL(tab.url).searchParams;
+        const score = params.get("score");
+        const level = params.get("level");
+        const url = decodeURIComponent(params.get("url") || "");
+        if (score && level) {
+          show(score, level, url);
+          return;
+        }
+      }
+      // Fallback to storage
+      chrome.storage.local.get(["score", "level", "lastUrl"], (data) => {
+        if (data.score) show(data.score, data.level, data.lastUrl);
+      });
+    });
+  </script>
+</body>
+</html>

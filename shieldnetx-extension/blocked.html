@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ShieldNetX — Blocked</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+    }
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at center, #ff000015 0%, #000 70%);
+      pointer-events: none;
+      animation: pulse-bg 2s ease-in-out infinite;
+    }
+    @keyframes pulse-bg { 0%,100%{opacity:0.5} 50%{opacity:1} }
+    .container { max-width: 600px; width: 100%; position: relative; z-index: 1; }
+    .shield-icon {
+      text-align: center;
+      font-size: 64px;
+      margin-bottom: 16px;
+      animation: shield-pulse 1.5s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px #ff2d2d);
+    }
+    @keyframes shield-pulse {
+      0%,100%{transform:scale(1);filter:drop-shadow(0 0 10px #ff2d2d)}
+      50%{transform:scale(1.05);filter:drop-shadow(0 0 30px #ff2d2d)}
+    }
+    .title { text-align:center; font-size:36px; font-weight:900; color:#ff2d2d; letter-spacing:2px; margin-bottom:6px; text-shadow:0 0 30px #ff2d2d88; }
+    .subtitle { text-align:center; color:#666; font-size:14px; margin-bottom:24px; }
+    .score-box {
+      background:#0a0000; border:2px solid #ff2d2d; border-radius:16px;
+      padding:28px; text-align:center; margin-bottom:16px;
+      box-shadow:0 0 40px #ff2d2d33, inset 0 0 40px #ff2d2d11;
+    }
+    #score {
+      font-size:90px; font-weight:900; color:#ff2d2d; line-height:1;
+      text-shadow:0 0 40px #ff2d2d;
+      animation:score-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes score-pulse {
+      0%,100%{text-shadow:0 0 20px #ff2d2d}
+      50%{text-shadow:0 0 60px #ff2d2d, 0 0 100px #ff2d2d88}
+    }
+    .score-label { color:#555; font-size:12px; letter-spacing:3px; margin:8px 0; }
+    #level {
+      display:inline-block; background:#ff2d2d; color:#fff;
+      padding:6px 28px; border-radius:30px; font-weight:900;
+      font-size:14px; letter-spacing:3px; box-shadow:0 0 20px #ff2d2d66;
+    }
+    #blocked-url {
+      display:block; background:#0a0a0a; border:1px solid #222;
+      border-radius:10px; padding:14px 18px; margin-bottom:16px;
+      font-size:13px; color:#ff6666; word-break:break-all;
+    }
+    .stolen-box { background:#0a0000; border:1px solid #ff2d2d44; border-radius:12px; padding:20px; margin-bottom:16px; }
+    .stolen-title { color:#ff4444; font-size:13px; font-weight:700; margin-bottom:4px; }
+    .stolen-sub { color:#555; font-size:12px; margin-bottom:14px; }
+    #stolen-data { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .stolen-item { background:#111; border:1px solid #1a1a1a; border-radius:8px; padding:12px; }
+    .stolen-label { color:#444; font-size:10px; letter-spacing:1px; margin-bottom:4px; }
+    .stolen-value { color:#ccc; font-size:13px; font-family:monospace; }
+    .safe-banner {
+      background:#001a00; border:1px solid #00c85344; border-radius:10px;
+      padding:12px 18px; color:#00c853; font-size:13px; margin-bottom:16px;
+    }
+    #report-btn {
+      width:100%; padding:16px;
+      background:linear-gradient(135deg,#ff2d2d,#ff6b00);
+      color:#fff; border:none; border-radius:12px;
+      font-size:15px; font-weight:800; cursor:pointer;
+      letter-spacing:1px; margin-bottom:12px;
+      box-shadow:0 4px 20px #ff2d2d44;
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+    #report-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px #ff2d2d66; }
+    .proceed { text-align:center; color:#333; font-size:12px; cursor:pointer; text-decoration:underline; letter-spacing:1px; }
+    .proceed:hover { color:#555; }
+    #report-modal {
+      display:none; position:fixed; top:0;left:0;right:0;bottom:0;
+      background:#000000cc; z-index:999;
+      align-items:center; justify-content:center;
+    }
+    .modal-box { background:#0a0a0a; border:1px solid #333; border-radius:16px; padding:32px; max-width:400px; width:90%; text-align:center; }
+    .modal-icon { font-size:48px; margin-bottom:12px; }
+    .modal-title { font-size:20px; font-weight:800; margin-bottom:16px; color:#fff; }
+    .modal-body { text-align:left; }
+    .report-detail { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1a1a1a; font-size:13px; color:#aaa; }
+    #modal-status { color:#00c853; font-size:14px; margin:16px 0; }
+    .animate { animation: fadeIn 0.3s ease forwards; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="container">
+    <div class="shield-icon">🛡️</div>
+    <div class="title">Attack Blocked!</div>
+    <div class="subtitle">ShieldNetX intercepted this link before it could harm you</div>
+
+    <div class="score-box">
+      <div id="score">--</div>
+      <div class="score-label">THREAT SCORE OUT OF 100</div>
+      <div id="level">SCANNING</div>
+    </div>
+
+    <div id="blocked-url">🔗 Loading...</div>
+
+    <div class="stolen-box">
+      <div class="stolen-title">🔴 Here's what the attacker almost stole from YOU:</div>
+      <div class="stolen-sub">This data was heading silently to the attacker's server</div>
+      <div id="stolen-data"></div>
+    </div>
+
+    <div class="safe-banner">
+      ✅ You were never at risk — ShieldNetX blocked it before a single byte loaded
+    </div>
+
+    <button id="report-btn" id="report-btn-click">
+      🚨 Report This Attack to CERT-In India
+    </button>
+    <div class="proceed" id="proceed-btn">[ proceed to dangerous site anyway ]</div>
+  </div>
+
+  <div id="report-modal">
+    <div class="modal-box">
+      <div class="modal-icon">📡</div>
+      <div class="modal-title">Filing Report...</div>
+      <div id="modal-status">Connecting to CERT-In servers...</div>
+    </div>
+  </div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>
