@@ -126,17 +126,19 @@
       ✅ You were never at risk — ShieldNetX blocked it before a single byte loaded
     </div>
 
-    <button id="report-btn" id="report-btn-click">
+    <button id="report-btn">
       🚨 Report This Attack to CERT-In India
     </button>
     <div class="proceed" id="proceed-btn">[ proceed to dangerous site anyway ]</div>
   </div>
 
   <div id="report-modal">
-    <div class="modal-box">
-      <div class="modal-icon">📡</div>
-      <div class="modal-title">Filing Report...</div>
+    <div class="modal-box" id="modal-inner">
+      <div class="modal-icon" id="modal-icon">📡</div>
+      <div class="modal-title" id="modal-title">Filing Report...</div>
       <div id="modal-status">Connecting to CERT-In servers...</div>
+      <div id="modal-details"></div>
+      <button id="close-btn" style="display:none;margin-top:16px;width:100%;padding:12px;background:#00c853;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px">Close</button>
     </div>
   </div>
 

@@ -4,70 +4,63 @@
   <title>ShieldNetX</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { width: 320px; background: #0a0a0f; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1a1a3a; }
-    .logo { font-size: 28px; }
+    body { width: 340px; background: #0a0a0f; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #1a1a3a; }
     .brand { font-size: 16px; font-weight: 800; }
     .tagline { font-size: 10px; color: #666; letter-spacing: 1px; }
     .status { background: #00ff8822; border: 1px solid #00ff88; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #00ff88; margin-left: auto; }
-    .last-scan { background: #0d0d1a; border: 1px solid #1a1a3a; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .last-scan-title { font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 10px; }
-    .score-row { display: flex; align-items: center; justify-content: space-between; }
+    .scan-section { margin-bottom: 14px; }
+    .scan-label { font-size: 10px; color: #666; letter-spacing: 1px; margin-bottom: 6px; }
+    .input-row { display: flex; gap: 6px; }
+    .url-input { flex: 1; background: #0d0d1a; border: 1px solid #1a1a3a; color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 11px; outline: none; font-family: monospace; }
+    .url-input:focus { border-color: #00ff88; }
+    .url-input::placeholder { color: #444; }
+    .btn-analyze { background: #00ff88; color: #000; border: none; border-radius: 6px; padding: 8px 12px; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .btn-analyze:hover { background: #00cc6a; }
+    .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+    .result-card { background: #0d0d1a; border: 1px solid #1a1a3a; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+    .result-title { font-size: 10px; color: #666; letter-spacing: 1px; margin-bottom: 10px; }
+    .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
     .score-big { font-size: 40px; font-weight: 900; }
     .level { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
-    .url-text { font-size: 11px; color: #666; margin-top: 8px; word-break: break-all; }
-    .no-scan { text-align: center; color: #444; font-size: 13px; padding: 20px 0; }
-    .footer { text-align: center; font-size: 10px; color: #333; letter-spacing: 1px; margin-top: 8px; }
+    .url-text { font-size: 10px; color: #555; word-break: break-all; margin-bottom: 10px; }
+    .signals { margin-top: 8px; }
+    .signal-item { font-size: 10px; color: #aaa; padding: 3px 0; border-bottom: 1px solid #111; display: flex; gap: 6px; align-items: flex-start; }
+    .signal-item:last-child { border-bottom: none; }
+    .dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+    .btn-sandbox { width: 100%; background: #00aaff22; border: 1px solid #00aaff; color: #00aaff; border-radius: 8px; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; }
+    .btn-sandbox:hover { background: #00aaff33; }
+    .btn-sandbox:disabled { opacity: 0.3; cursor: not-allowed; }
+    .no-scan { text-align: center; color: #444; font-size: 12px; padding: 16px 0; }
+    .loading { text-align: center; color: #00ff88; font-size: 11px; padding: 14px 0; font-family: monospace; animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .footer { text-align: center; font-size: 10px; color: #333; letter-spacing: 1px; margin-top: 10px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="logo">🛡️</div>
+    <div>🛡️</div>
     <div>
       <div class="brand">ShieldNetX</div>
       <div class="tagline">CYBER THREAT INTELLIGENCE</div>
     </div>
-    <div class="status">● ACTIVE</div>
+   <div class="status" id="statusBadge">● CHECKING...</div>
   </div>
-  <div class="last-scan">
-    <div class="last-scan-title">LAST SCANNED LINK</div>
-    <div id="scan-content">
+  <div class="scan-section">
+    <div class="scan-label">SCAN ANY LINK</div>
+    <div class="input-row">
+      <input class="url-input" id="urlInput" type="text" placeholder="https://suspicious-site.com" />
+      <button class="btn-analyze" id="analyzeBtn">SCAN</button>
+    </div>
+  </div>
+  <div class="result-card">
+    <div class="result-title">THREAT ANALYSIS</div>
+    <div id="scanContent">
       <div class="no-scan">No links scanned yet.<br>Browse normally — we protect you silently.</div>
     </div>
   </div>
+  <button class="btn-sandbox" id="sandboxBtn" disabled>🔬 Open in Sandbox</button>
   <div class="footer">SHIELDNETX IS PROTECTING YOU 🛡️</div>
-  <script>
-    const colors = { CRITICAL: "#ff2d2d", HIGH: "#ff6b00", MEDIUM: "#ffd000", LOW: "#00c2ff", SAFE: "#00ff88" };
-    
-    function show(score, level, url) {
-      const color = colors[level] || "#00ff88";
-      document.getElementById("scan-content").innerHTML = `
-        <div class="score-row">
-          <div class="score-big" style="color:${color}">${score}</div>
-          <div class="level" style="background:${color}22;color:${color};border:1px solid ${color}44">${level}</div>
-        </div>
-        <div class="url-text">${url || ""}</div>
-      `;
-    }
-
-    // First check active tab URL for score/level params
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      const tab = tabs[0];
-      if (tab && tab.url && tab.url.includes("blocked.html")) {
-        const params = new URL(tab.url).searchParams;
-        const score = params.get("score");
-        const level = params.get("level");
-        const url = decodeURIComponent(params.get("url") || "");
-        if (score && level) {
-          show(score, level, url);
-          return;
-        }
-      }
-      // Fallback to storage
-      chrome.storage.local.get(["score", "level", "lastUrl"], (data) => {
-        if (data.score) show(data.score, data.level, data.lastUrl);
-      });
-    });
-  </script>
+  <script src="popup.js"></script>
 </body>
 </html>

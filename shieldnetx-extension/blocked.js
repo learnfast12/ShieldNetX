@@ -53,7 +53,7 @@ function renderStolenData() {
 function reportAttack() {
   const btn = document.getElementById("report-btn");
   const modal = document.getElementById("report-modal");
-  
+
   btn.disabled = true;
   btn.textContent = "⏳ Filing report...";
   modal.style.display = "flex";
@@ -78,26 +78,23 @@ function reportAttack() {
 }
 
 function showSuccess() {
-  const modal = document.getElementById("report-modal");
-  modal.innerHTML = `
-    <div class="modal-box success">
-      <div class="modal-icon">✅</div>
-      <div class="modal-title">Report Filed!</div>
-      <div class="modal-body">
-        <div class="report-detail"><span>Report ID</span><span>CERT-IN-2026-${Math.floor(Math.random()*99999)}</span></div>
-        <div class="report-detail"><span>Submitted to</span><span>CERT-In India</span></div>
-        <div class="report-detail"><span>Threat Level</span><span style="color:#ff2d2d">CRITICAL</span></div>
-        <div class="report-detail"><span>Attacker IP</span><span>Logged & Traced</span></div>
-        <div class="report-detail"><span>Status</span><span style="color:#00c853">Under Investigation</span></div>
-      </div>
-      <p style="font-size:12px;color:#555;margin-top:16px">Authorities have been notified. The attacker's infrastructure is being traced.</p>
-      <button onclick="document.getElementById('report-modal').style.display='none'" 
-        style="margin-top:16px;width:100%;padding:12px;background:#00c853;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px">
-        Close
-      </button>
-    </div>
+  document.getElementById("modal-icon").textContent = "✅";
+  document.getElementById("modal-title").textContent = "Report Filed!";
+  document.getElementById("modal-status").textContent = "";
+  document.getElementById("modal-details").innerHTML = `
+    <div class="report-detail"><span>Report ID</span><span>CERT-IN-2026-${Math.floor(Math.random()*99999)}</span></div>
+    <div class="report-detail"><span>Submitted to</span><span>CERT-In India</span></div>
+    <div class="report-detail"><span>Threat Level</span><span style="color:#ff2d2d">CRITICAL</span></div>
+    <div class="report-detail"><span>Attacker IP</span><span>Logged & Traced</span></div>
+    <div class="report-detail"><span>Status</span><span style="color:#00c853">Under Investigation</span></div>
+    <p style="font-size:12px;color:#555;margin-top:16px">Authorities have been notified. The attacker's infrastructure is being traced.</p>
   `;
+  document.getElementById("close-btn").style.display = "block";
 }
+
+document.getElementById("close-btn").addEventListener("click", () => {
+  document.getElementById("report-modal").style.display = "none";
+});
 
 function proceed() {
   if (confirm("⚠️ This link is dangerous. Are you absolutely sure?")) {
@@ -107,3 +104,4 @@ function proceed() {
 
 document.getElementById("report-btn").addEventListener("click", reportAttack);
 document.getElementById("proceed-btn").addEventListener("click", proceed);
+
