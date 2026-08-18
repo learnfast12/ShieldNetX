@@ -1,60 +1,74 @@
 #!/bin/bash
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-BOLD='\033[1m'
-NC='\033[0m'
-BASE=~/ShieldNetX
-LOG=$BASE/logs
-mkdir -p $LOG
-kill_port() {
-  fuser -k "$1/tcp" 2>/dev/null
-}
-echo -e "${RED}${BOLD}"
 echo "  ███████╗██╗  ██╗██╗███████╗██╗     ██████╗ "
 echo "  ██╔════╝██║  ██║██║██╔════╝██║     ██╔══██╗"
 echo "  ███████╗███████║██║█████╗  ██║     ██║  ██║"
 echo "  ╚════██║██╔══██║██║██╔══╝  ██║     ██║  ██║"
 echo "  ███████║██║  ██║██║███████╗███████╗██████╔╝"
 echo "  ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ "
-echo -e "${CYAN}         N E T X  —  Team Omega 404 🛡️${NC}"
-echo ""
-echo -e "${YELLOW}[*] Clearing ports...${NC}"
-kill_port 8000
-kill_port 8002
-kill_port 5500
-kill_port 3000
-kill_port 7000
-kill_port 8080
-sleep 1
-echo -e "${CYAN}[1/5] Starting Sentinel Backend (port 8000)...${NC}"
-cd $BASE/sentinel-backend && nohup uvicorn main:app --reload --host 0.0.0.0 --port 8000 > $LOG/backend.log 2>&1 &
-sleep 2
-echo -e "${CYAN}[2/5] Starting ShieldNetX Frontend (port 3000)...${NC}"
-cd $BASE/shieldnetx-frontend && nohup npm start > $LOG/frontend.log 2>&1 &
-sleep 1
-echo -e "${CYAN}[3/5] Starting Attacker C2 (port 7000)...${NC}"
-cd $BASE/attacker-dashboard && nohup python3 attacker.py > $LOG/attacker.log 2>&1 &
-sleep 1
-echo -e "${CYAN}[4/5] Starting Phishing Page (port 8080)...${NC}"
-cd $BASE/demo-phishing-page && nohup python3 -m http.server 8080 > $LOG/phishing.log 2>&1 &
-sleep 1
-echo -e "${CYAN}[5/5] Starting Phishing Sandbox (port 8001 + 5500)...${NC}"
-sleep 2
-cd /home/shravan/shieldnetx-sandbox/backend && nohup uvicorn main:app --host 0.0.0.0 --port 8002 > $LOG/sandbox.log 2>&1 &
-sleep 1
-cd /home/shravan/shieldnetx-sandbox/frontend && nohup python3 -m http.server 5500 > $LOG/sandbox-frontend.log 2>&1 &
+echo "         N E T X  —  Team Omega 404 🛡️"
+
+ROOT="$HOME/ShieldNetX"
+LOGDIR="$ROOT/logs"
+mkdir -p "$LOGDIR"
+
+echo "[*] Clearing ports..."
+for p in 8000 3000 7000 8080 5500 8001; do
+  pid=$(lsof -ti tcp:$p 2>/dev/null)
+  if [ -n "$pid" ]; then
+    kill -9 $pid 2>/dev/null
+  fi
+done
+
+echo "[1/6] Starting Sentinel Backend (port 8000)..."
+cd "$ROOT/sentinel-backend" || exit 1
+source .venv/bin/activate
+nohup uvicorn main:app --reload --host 0.0.0.0 --port 8000 > "$LOGDIR/backend.log" 2>&1 &
+deactivate
+
+echo "[2/6] Starting ShieldNetX Frontend (port 3000)..."
+cd "$ROOT/shieldnetx-frontend" || exit 1
+nohup npm start > "$LOGDIR/frontend.log" 2>&1 &
+
+echo "[3/6] Starting Attacker C2 (port 7000)..."
+cd "$ROOT/attacker-dashboard" || exit 1
+nohup python3 -m uvicorn attacker:app --host 0.0.0.0 --port 7000 > "$LOGDIR/attacker.log" 2>&1 &
+
+echo "[4/6] Starting Phishing Page (port 8080)..."
+cd "$ROOT/demo-phishing-page" || exit 1
+nohup python3 -m http.server 8080 > "$LOGDIR/phishing.log" 2>&1 &
+
+echo "[5/6] Starting Phishing Sandbox (port 8001 + 5500)..."
+if [ -d "$HOME/shieldnetx-sandbox/backend" ]; then
+  cd "$HOME/shieldnetx-sandbox/backend" && source .venv/bin/activate && nohup uvicorn main:app --port 8001 > "$LOGDIR/sandbox-backend.log" 2>&1 &
+  deactivate
+fi
+if [ -d "$HOME/shieldnetx-sandbox/frontend" ]; then
+  cd "$HOME/shieldnetx-sandbox/frontend" && nohup python3 -m http.server 5500 > "$LOGDIR/sandbox-frontend.log" 2>&1 &
+fi
+
 sleep 3
-echo ""
-echo -e "${GREEN}${BOLD}✅ ShieldNetX Full Stack is UP!${NC}"
-echo ""
-echo -e "  🛡️  Sentinel Backend  → ${GREEN}http://localhost:8000${NC}"
-echo -e "  📊  ShieldNetX UI     → ${GREEN}http://localhost:3000${NC}"
-echo -e "  💀  Attacker C2       → ${RED}http://localhost:7000${NC}"
-echo -e "  🎣  Phishing Page     → ${RED}http://localhost:8080${NC}"
-echo -e "  🔬  Phishing Sandbox  → ${GREEN}http://localhost:5500${NC}"
-echo ""
-echo -e "${YELLOW}  Logs → $LOG/${NC}"
-echo ""
-chromium http://localhost:3000 http://localhost:7000 http://localhost:8080 http://localhost:5500 2>/dev/null &
+
+echo "✅ ShieldNetX Full Stack is UP!"
+echo "  🛡️  Sentinel Backend  → http://localhost:8000"
+echo "  📊  ShieldNetX UI     → http://localhost:3000"
+echo "  💀  Attacker C2       → http://localhost:7000"
+echo "  🎣  Phishing Page     → http://localhost:8080"
+echo "  🔬  Phishing Sandbox  → http://localhost:5500"
+echo "  Logs → $LOGDIR/"
+
+echo "[6/6] Launching Chromium with extension + tabs..."
+CHROME_BIN=$(command -v chromium-browser || command -v chromium || command -v google-chrome)
+
+if [ -n "$CHROME_BIN" ]; then
+  "$CHROME_BIN" \
+    --load-extension="$ROOT/shieldnetx-extension" \
+    --new-window \
+    "http://localhost:3000" \
+    "http://localhost:7000" \
+    "http://localhost:8080" \
+    "http://localhost:8000/docs" \
+    > /dev/null 2>&1 &
+  echo "🚀 Chromium launched with ShieldNetX extension + all tabs open!"
+else
+  echo "⚠️  Chromium not found — install it (sudo dnf install chromium) to enable auto-launch."
+fi

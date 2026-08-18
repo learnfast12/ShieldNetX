@@ -1,4 +1,4 @@
-const API = 'http://localhost:8002';
+const API = 'http://localhost:8000';
 const colors = { CRITICAL: "#ff2d2d", HIGH: "#ff6b00", MEDIUM: "#ffd000", LOW: "#00c2ff", SAFE: "#00ff88" };
 let currentURL = '';
 
@@ -29,19 +29,19 @@ async function analyzeURL() {
   document.getElementById('scanContent').innerHTML = '<div class="loading">⟳ Scanning target...</div>';
 
   try {
-    const res = await fetch(`${API}/api/analyze`, {
+    const res = await fetch(`${API}/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })
     });
-    const data = await res.json();
-    if (data.success) {
-      show(data.risk.score, data.risk.level, url, data.risk.signals);
+    if (!res.ok) {
+      document.getElementById('scanContent').innerHTML = `<div class="no-scan" style="color:#ff3366">Error: ${res.status} ${res.statusText}</div>`;
     } else {
-      document.getElementById('scanContent').innerHTML = `<div class="no-scan" style="color:#ff3366">Error: ${data.error}</div>`;
+      const data = await res.json();
+      show(data.threat_score, data.threat_level, url, data.signals);
     }
   } catch(e) {
-    document.getElementById('scanContent').innerHTML = '<div class="no-scan" style="color:#ff3366">Backend not reachable.<br>Is sandbox running on port 8001?</div>';
+    document.getElementById('scanContent').innerHTML = '<div class="no-scan" style="color:#ff3366">Backend not reachable.<br>Is the sentinel backend running on port 8000?</div>';
   }
   document.getElementById('analyzeBtn').disabled = false;
 }
@@ -55,7 +55,7 @@ function openSandbox() {
 document.addEventListener('DOMContentLoaded', () => {
   // Check backend status
   const badge = document.getElementById('statusBadge');
-  fetch('http://localhost:8002/docs')
+  fetch('http://localhost:8000/docs')
     .then(() => {
       badge.textContent = '● ACTIVE';
       badge.style.color = '#00ff88';
