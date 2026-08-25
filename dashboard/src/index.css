@@ -1,0 +1,352 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0A0E14;
+  --panel: #121924;
+  --panel-raised: #171F2C;
+  --border: #1E2A38;
+  --text: #E7EEF5;
+  --text-muted: #64778C;
+  --accent: #3E7BFA;
+  --accent-dim: #1F3A6B;
+  --critical: #FF3B5C;
+  --high: #FF8A3D;
+  --medium: #FFC53D;
+  --low: #2DD4A0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+.display { font-family: 'Space Grotesk', sans-serif; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ── Radar scan background ── */
+.scan-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(62,123,250,0.12) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.scan-sweep {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    transparent 0deg,
+    rgba(62,123,250,0.10) 15deg,
+    transparent 40deg,
+    transparent 360deg
+  );
+  animation: sweep 6s linear infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  70% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes float-chip {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-sweep { animation: none; }
+}
+
+/* ── Live scan demo animations ── */
+@keyframes radar-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ring-pulse {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+@keyframes particle-drift {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+
+@keyframes status-pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px 0px var(--glow-color, rgba(62,123,250,0.4)); }
+  50% { box-shadow: 0 0 45px 8px var(--glow-color, rgba(62,123,250,0.4)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-rotate, .ring-pulse, .particle-drift { animation: none !important; }
+}
+
+/* ── Hero illustration blob background ── */
+.hero-blob {
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 90deg,
+    #3E7BFA22, #8B5CF622, #EC489922, #2DD4A022, #3E7BFA22
+  );
+  filter: blur(60px);
+  animation: blob-rotate 14s linear infinite, blob-breathe 6s ease-in-out infinite;
+}
+
+@keyframes blob-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blob-breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.08) rotate(10deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob { animation: none; }
+}
+
+/* ── Vivid hero panel, fills the whole right side ── */
+.hero-panel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 640px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 900px 700px at 75% 15%, #3E7BFA3d, transparent 60%),
+    radial-gradient(ellipse 800px 650px at 15% 85%, #EC48993d, transparent 60%),
+    radial-gradient(ellipse 750px 700px at 90% 90%, #2DD4A038, transparent 55%),
+    radial-gradient(ellipse 650px 550px at 30% 35%, #8B5CF638, transparent 55%),
+    var(--bg);
+}
+
+.big-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@keyframes drift-a {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(50px, -40px) scale(1.15); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(-60px, 40px) scale(1.1); }
+}
+@keyframes drift-c {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(40px, 50px) scale(0.9); }
+}
+@keyframes upload-rise {
+  0%   { transform: translateY(30px); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateY(-160px); opacity: 0; }
+}
+@keyframes badge-pop {
+  0%   { transform: scale(0.9) translateY(6px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .big-blob { animation: none !important; }
+}
+
+/* ── Hero polish: depth, vignette, headline ── */
+.hero-panel {
+  box-shadow: inset 0 0 160px 40px rgba(0,0,0,0.55);
+}
+
+.hero-headline {
+  position: absolute;
+  top: 48px;
+  left: 48px;
+  max-width: 380px;
+  z-index: 2;
+  pointer-events: none;
+}
+.hero-headline h1 {
+  font-family: 'Inter', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: #F2F5FA;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
+}
+.hero-headline p {
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #A9B4C4;
+  margin: 0;
+}
+
+@keyframes pulse-travel {
+  0% { left: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* ── Centered upload hero animations ── */
+@keyframes slide-in-left {
+  0%   { transform: translateX(-16px); opacity: 0.3; }
+  50%  { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(-16px); opacity: 0.3; }
+}
+@keyframes slide-in-right {
+  0%   { transform: translateX(16px); opacity: 0.3; }
+  50%  { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(16px); opacity: 0.3; }
+}
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 30px rgba(62,123,250,0.15); }
+  50% { box-shadow: 0 0 44px rgba(62,123,250,0.3); }
+}
+@keyframes travel-pulse {
+  0%   { left: 0%; }
+  100% { left: 100%; }
+}
+
+/* ── Connector beams + success rings ── */
+@keyframes beam-travel {
+  0%   { left: 0%; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 92%; opacity: 0; }
+}
+@keyframes beam-travel-rev {
+  0%   { left: 92%; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 0%; opacity: 0; }
+}
+@keyframes ring-burst {
+  0%   { r: 30; opacity: 0.7; }
+  100% { r: 70; opacity: 0; }
+}
+
+/* ── Unified full-width background, no panel seams ── */
+.hero-shared-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 1100px 800px at 15% 15%, #3E7BFA30, transparent 62%),
+    radial-gradient(ellipse 950px 750px at 50% 55%, #EC489926, transparent 62%),
+    radial-gradient(ellipse 950px 800px at 85% 20%, #2DD4A028, transparent 62%),
+    radial-gradient(ellipse 800px 650px at 60% 85%, #8B5CF628, transparent 58%),
+    var(--bg);
+  box-shadow: inset 0 0 180px 50px rgba(0,0,0,0.5);
+}
+
+.hero-panel-transparent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* ── Trust feed animations ── */
+@keyframes blink-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes feed-slide-in {
+  0%   { transform: translateY(-8px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Center upload zone: radar rings + converging particles ── */
+@keyframes radar-pulse {
+  0%   { transform: scale(0.9); opacity: 0.7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes orbit-converge {
+  0%   { transform: translate(-170px, -30px) scale(0.6); opacity: 0; }
+  20%  { opacity: 1; }
+  50%  { transform: translate(-40px, 0) scale(1); opacity: 1; }
+  80%  { opacity: 0.4; }
+  100% { transform: translate(0, 0) scale(0.3); opacity: 0; }
+}
+
+/* ── Hacker-terminal report styling ── */
+.term-scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.012) 0px,
+    rgba(255,255,255,0.012) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  z-index: 0;
+}

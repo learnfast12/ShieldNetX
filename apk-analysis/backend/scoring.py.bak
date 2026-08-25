@@ -1,0 +1,56 @@
+NEGATIVE_PHRASES = ["none", "none detected", "n/a", "not detected", "no evidence", "not applicable"]
+
+def _has_real_findings(items) -> bool:
+    if not items:
+        return False
+    return any(str(i).strip().lower() not in NEGATIVE_PHRASES for i in items)
+
+def compute_risk_score(static_findings: dict, genai_verdict: dict) -> dict:
+    score = 0
+    breakdown = []
+
+    if _has_real_findings(genai_verdict.get("exfiltration_targets")):
+        score += 25
+        breakdown.append({"signal": "Data exfiltration confirmed (GenAI)", "points": 25})
+
+    critical_combos = [c for c in static_findings["dangerous_combos"] if c["risk"] == "CRITICAL"]
+    if critical_combos:
+        score += 20
+        breakdown.append({"signal": "Dangerous permission combination", "points": 20})
+
+    if any("overlay" in m.lower() for m in genai_verdict.get("fraud_mechanisms", [])):
+        score += 20
+        breakdown.append({"signal": "UI overlay attack on banking app", "points": 20})
+
+    if _has_real_findings(genai_verdict.get("evasion_methods")):
+        score += 10
+        breakdown.append({"signal": "Code obfuscation / anti-analysis", "points": 10})
+
+    family = genai_verdict.get("malware_family_hypothesis", "")
+    benign_markers = ["unknown", "novel", "benign", "legitimate", "clean", "safe"]
+    is_benign = not family or any(m in family.lower() for m in benign_markers)
+    has_fraud_evidence = _has_real_findings(genai_verdict.get("fraud_mechanisms")) or _has_real_findings(genai_verdict.get("exfiltration_targets"))
+    if family and not is_benign and has_fraud_evidence:
+        score += 10
+        breakdown.append({"signal": f"Known malware family match: {family}", "points": 10})
+
+    banking_hits = static_findings.get("banking_keyword_hits", [])
+    if len(banking_hits) >= 2:
+        score += 15
+        breakdown.append({"signal": f"Banking-target keywords present ({', '.join(banking_hits)})", "points": 15})
+    elif len(banking_hits) == 1:
+        score += 5
+        breakdown.append({"signal": f"Single banking-related keyword found ({banking_hits[0]}) — weak signal", "points": 5})
+
+    score = min(score, 100)
+
+    if score >= 76:
+        severity, action = "CRITICAL", "Auto-block + incident response + customer notification"
+    elif score >= 51:
+        severity, action = "HIGH", "Immediate block + alert"
+    elif score >= 26:
+        severity, action = "MEDIUM", "Analyst review required"
+    else:
+        severity, action = "LOW", "Log and monitor"
+
+    return {"score": score, "severity": severity, "action": action, "breakdown": breakdown}

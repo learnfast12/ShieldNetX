@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": {
+      "type": "redirect",
+      "redirect": { "extensionPath": "/blocked.html?score=95&level=CRITICAL&url=blocked-instant" }
+    },
+    "condition": {
+      "urlFilter": "||localhost:8080",
+      "resourceTypes": ["main_frame"]
+    }
+  }
+]
