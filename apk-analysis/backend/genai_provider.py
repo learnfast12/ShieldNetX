@@ -64,7 +64,7 @@ def _try_gemini(findings: str):
                 "contents": [{"parts": [{"text": PROMPT_TEMPLATE.format(findings=findings)}]}],
                 "generationConfig": {"temperature": 0.1, "topP": 0.8, "topK": 10},
             },
-            timeout=30,
+            timeout=60,
         )
         if resp.status_code != 200:
             print(f"[genai] Gemini REST failed: {resp.status_code} {resp.text}")
@@ -125,7 +125,7 @@ def _rule_based_fallback(findings: str):
     }
 
 def get_genai_verdict(findings: str) -> dict:
-    for provider_fn, name in [(_try_gemini, "gemini"), (_try_ollama, "ollama"), (_try_claude, "claude")]:
+    for provider_fn, name in [(_try_gemini, "gemini"), (_try_ollama, "ollama")]:
         result = provider_fn(findings)
         if result:
             result["_provider_used"] = name
