@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg_dark">#0D1117</color>
+    <color name="card_bg">#161B22</color>
+    <color name="text_primary">#F0F6FC</color>
+    <color name="text_secondary">#8B949E</color>
+
+    <color name="severity_low">#3FB950</color>
+    <color name="severity_medium">#D29922</color>
+    <color name="severity_high">#DB6D28</color>
+    <color name="severity_critical">#F85149</color>
+
+    <color name="brand_accent">#58A6FF</color>
+</resources>

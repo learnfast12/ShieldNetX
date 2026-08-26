@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ShieldNetX"
+            android:textColor="@color/brand_accent"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.15"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp" />
+
+        <ImageView
+            android:id="@+id/severityIcon"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_shield_warning"
+            android:layout_marginBottom="20dp" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Preparing scan..."
+            android:textColor="@color/text_primary"
+            android:textSize="17sp"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Result card, hidden until scan completes -->
+        <LinearLayout
+            android:id="@+id/resultCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/card_bg"
+            android:padding="20dp"
+            android:visibility="gone"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/scoreText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/text_primary"
+                    android:textSize="40sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="/100"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="18sp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="14dp" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/severityBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="HIGH"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    android:textSize="13sp"
+                    android:background="@color/severity_high"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/malwareFamilyLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MALWARE FAMILY"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/malwareFamilyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="—"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/techniquesLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="DETECTED TECHNIQUES"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/techniquesText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="—"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:id="@+id/summaryText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/proceedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Proceed to Install"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:backgroundTint="@color/severity_low"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/blockButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Block and Delete"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:backgroundTint="@color/severity_critical" />
+
+    </LinearLayout>
+</ScrollView>
