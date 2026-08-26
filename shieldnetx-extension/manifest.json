@@ -7,7 +7,9 @@
     "activeTab",
     "webNavigation",
     "storage",
-    "tabs"
+    "tabs",
+    "downloads",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -17,24 +19,39 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_start"
     }
   ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "48": "icons/icon48.png"
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   },
   "icons": {
-    "48": "icons/icon48.png"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
-  "web_accessible_resources": [{
-    "resources": ["blocked.html", "blocked.js"],
-    "matches": ["<all_urls>"]
-  }],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "blocked.html",
+        "blocked.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

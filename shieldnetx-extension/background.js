@@ -16,8 +16,21 @@ const INSTANT_BLOCK = [
 // Cache to avoid scanning same URL twice
 const scanCache = {};
 
+// Default protection state on install
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.get(["protectionEnabled"], (data) => {
+    if (data.protectionEnabled === undefined) {
+      chrome.storage.local.set({ protectionEnabled: true });
+    }
+  });
+});
+
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return;
+
+  // Protection toggle check — bail out entirely if disabled
+  const { protectionEnabled } = await chrome.storage.local.get(["protectionEnabled"]);
+  if (protectionEnabled === false) return;
   const url = details.url;
 
   // Whitelist check
@@ -69,3 +82,95 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     console.log("ShieldNetX scan error:", e);
   }
 });
+
+// ===== APK Download Interception =====
+const APK_BACKEND = "http://localhost:8010";
+const apkPollCache = {};
+
+chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
+  if (!item.filename.toLowerCase().endsWith(".apk")) {
+    suggest();
+    return;
+  }
+  console.log("[ShieldNetX] APK download detected:", item.filename, item.url);
+  // Let it save to disk first (we need bytes on disk to read + delete if needed)
+  suggest();
+});
+
+chrome.downloads.onChanged.addListener(async (delta) => {
+  if (delta.state && delta.state.current === "complete") {
+    chrome.downloads.search({ id: delta.id }, async (items) => {
+      const item = items[0];
+      if (!item || !item.filename.toLowerCase().endsWith(".apk")) return;
+
+      console.log("[ShieldNetX] APK finished downloading, scanning:", item.filename);
+      await scanDownloadedApk(item);
+    });
+  }
+});
+
+async function scanDownloadedApk(item) {
+  try {
+    // Fetch the file bytes back via the file:// URL isn't accessible from extension;
+    // instead re-fetch from the original source URL to get bytes for upload.
+    const fileResp = await fetch(item.finalUrl || item.url);
+    const blob = await fileResp.blob();
+
+    const formData = new FormData();
+    formData.append("file", blob, item.filename.split(/[\\/]/).pop());
+
+    const uploadResp = await fetch(`${APK_BACKEND}/api/analyze`, {
+      method: "POST",
+      body: formData
+    });
+    if (!uploadResp.ok) {
+      console.error("[ShieldNetX] APK upload failed:", uploadResp.status);
+      return;
+    }
+    const { job_id } = await uploadResp.json();
+    console.log("[ShieldNetX] APK scan job started:", job_id);
+
+    pollApkJob(job_id, item.id, item.filename);
+  } catch (e) {
+    console.error("[ShieldNetX] APK scan error:", e);
+  }
+}
+
+async function pollApkJob(jobId, downloadId, filename, attempt = 0) {
+  if (attempt > 60) {
+    console.error("[ShieldNetX] APK scan timed out for", filename);
+    return;
+  }
+  try {
+    const statusResp = await fetch(`${APK_BACKEND}/api/status/${jobId}`);
+    const status = await statusResp.json();
+
+    if (status.stage === "complete") {
+      const reportResp = await fetch(`${APK_BACKEND}/api/report/${jobId}`);
+      const report = await reportResp.json();
+      const severity = report?.risk?.severity || "UNKNOWN";
+      console.log("[ShieldNetX] APK verdict:", severity, filename);
+
+      if (severity === "CRITICAL" || severity === "HIGH") {
+        chrome.downloads.removeFile(downloadId, () => {
+          chrome.downloads.erase({ id: downloadId });
+          console.warn("[ShieldNetX] Malicious APK deleted:", filename, severity);
+          chrome.notifications?.create({
+            type: "basic",
+            iconUrl: "icons/icon128.png",
+            title: "ShieldNetX — APK Blocked",
+            message: `${filename} was flagged ${severity} and deleted.`
+          });
+        });
+      }
+      return;
+    }
+    if (status.stage === "error") {
+      console.error("[ShieldNetX] APK scan error:", status.error);
+      return;
+    }
+    setTimeout(() => pollApkJob(jobId, downloadId, filename, attempt + 1), 2000);
+  } catch (e) {
+    console.error("[ShieldNetX] Poll error:", e);
+  }
+}

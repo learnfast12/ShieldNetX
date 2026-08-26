@@ -52,9 +52,15 @@ function openSandbox() {
   chrome.tabs.create({ url: sandboxURL });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Check backend status
+function updateBadge(protectionEnabled) {
   const badge = document.getElementById('statusBadge');
+  if (protectionEnabled === false) {
+    badge.textContent = '● OFFLINE';
+    badge.style.color = '#ff3366';
+    badge.style.borderColor = '#ff3366';
+    badge.style.background = '#ff336622';
+    return;
+  }
   fetch('http://localhost:8000/docs')
     .then(() => {
       badge.textContent = '● ACTIVE';
@@ -63,14 +69,44 @@ document.addEventListener('DOMContentLoaded', () => {
       badge.style.background = '#00ff8822';
     })
     .catch(() => {
-      badge.textContent = '● OFFLINE';
+      badge.textContent = '● BACKEND DOWN';
       badge.style.color = '#ff3366';
       badge.style.borderColor = '#ff3366';
       badge.style.background = '#ff336622';
     });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  chrome.storage.local.get(["protectionEnabled"], (data) => {
+    updateBadge(data.protectionEnabled !== false);
+  });
 
   document.getElementById('analyzeBtn').addEventListener('click', analyzeURL);
   document.getElementById('sandboxBtn').addEventListener('click', openSandbox);
+
+  const toggle = document.getElementById('protectionToggle');
+  chrome.storage.local.get(["protectionEnabled"], (data) => {
+    toggle.checked = data.protectionEnabled !== false;
+  });
+  toggle.addEventListener('change', () => {
+    chrome.storage.local.set({ protectionEnabled: toggle.checked });
+    updateBadge(toggle.checked);
+
+    // If protection just got turned OFF, un-block any currently blocked tabs
+    if (!toggle.checked) {
+      chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+          if (tab.url && tab.url.includes('blocked.html')) {
+            const params = new URL(tab.url).searchParams;
+            const originalUrl = decodeURIComponent(params.get('url') || '');
+            if (originalUrl) {
+              chrome.tabs.update(tab.id, { url: originalUrl });
+            }
+          }
+        });
+      });
+    }
+  });
   document.getElementById('urlInput').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') analyzeURL();
   });

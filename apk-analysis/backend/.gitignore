@@ -1,1 +1,2 @@
 .env
+uvicorn_8010.log
