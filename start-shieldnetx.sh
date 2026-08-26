@@ -19,25 +19,25 @@ for p in 8000 3000 7000 8080 5500 8001 5173 8010; do
   fi
 done
 
-echo "[1/6] Starting Sentinel Backend (port 8000)..."
+echo "[1/8] Starting Sentinel Backend (port 8000)..."
 cd "$ROOT/sentinel-backend" || exit 1
 source .venv/bin/activate
 nohup uvicorn main:app --reload --host 0.0.0.0 --port 8000 > "$LOGDIR/backend.log" 2>&1 &
 deactivate
 
-echo "[2/6] Starting ShieldNetX Frontend (port 3000)..."
+echo "[2/8] Starting ShieldNetX Frontend (port 3000)..."
 cd "$ROOT/shieldnetx-frontend" || exit 1
 nohup npm start > "$LOGDIR/frontend.log" 2>&1 &
 
-echo "[3/6] Starting Attacker C2 (port 7000)..."
+echo "[3/8] Starting Attacker C2 (port 7000)..."
 cd "$ROOT/attacker-dashboard" || exit 1
 nohup python3 -m uvicorn attacker:app --host 0.0.0.0 --port 7000 > "$LOGDIR/attacker.log" 2>&1 &
 
-echo "[4/6] Starting Phishing Page (port 8080)..."
+echo "[4/8] Starting Phishing Page (port 8080)..."
 cd "$ROOT/demo-phishing-page" || exit 1
 nohup python3 -m http.server 8080 > "$LOGDIR/phishing.log" 2>&1 &
 
-echo "[5/7] Starting Phishing Sandbox (port 8001 + 5500)..."
+echo "[5/8] Starting Phishing Sandbox (port 8001 + 5500)..."
 if [ -d "$HOME/ShieldNetX/malware-sandbox/backend" ]; then
   cd "$HOME/ShieldNetX/malware-sandbox/backend" && source .venv/bin/activate && nohup uvicorn main:app --port 8001 > "$LOGDIR/sandbox-backend.log" 2>&1 &
   deactivate
@@ -46,7 +46,12 @@ if [ -d "$HOME/ShieldNetX/malware-sandbox/frontend" ]; then
   cd "$HOME/ShieldNetX/malware-sandbox/frontend" && nohup python3 -m http.server 5500 > "$LOGDIR/sandbox-frontend.log" 2>&1 &
 fi
 
-echo "[7/7] Starting APK Analyzer Dashboard (port 5173)..."
+echo "[6/8] Starting APK Analyzer Backend (port 8010)..."
+cd "$ROOT/apk-analysis/backend" || exit 1
+nohup ./venv/bin/uvicorn main:app --port 8010 > "$LOGDIR/apk-backend.log" 2>&1 &
+cd "$ROOT" || exit 1
+
+echo "[7/8] Starting APK Analyzer Dashboard (port 5173)..."
 cd "$ROOT/dashboard" || exit 1
 nohup npm run dev > "$LOGDIR/dashboard.log" 2>&1 &
 
@@ -60,7 +65,7 @@ echo "  🎣  Phishing Page     → http://localhost:8080"
 echo "  🔬  Phishing Sandbox  → http://localhost:5500"
 echo "  Logs → $LOGDIR/"
 
-echo "[6/7] Launching Chromium with extension + tabs..."
+echo "[8/8] Launching Chromium with extension + tabs..."
 CHROME_BIN=$(command -v chromium-browser || command -v chromium || command -v google-chrome)
 
 if [ -n "$CHROME_BIN" ]; then
