@@ -12,7 +12,7 @@ LOGDIR="$ROOT/logs"
 mkdir -p "$LOGDIR"
 
 echo "[*] Clearing ports..."
-for p in 8000 3000 7000 8080 5500 8001; do
+for p in 8000 3000 7000 8080 5500 8001 5173 8010; do
   pid=$(lsof -ti tcp:$p 2>/dev/null)
   if [ -n "$pid" ]; then
     kill -9 $pid 2>/dev/null
@@ -37,14 +37,18 @@ echo "[4/6] Starting Phishing Page (port 8080)..."
 cd "$ROOT/demo-phishing-page" || exit 1
 nohup python3 -m http.server 8080 > "$LOGDIR/phishing.log" 2>&1 &
 
-echo "[5/6] Starting Phishing Sandbox (port 8001 + 5500)..."
-if [ -d "$HOME/shieldnetx-sandbox/backend" ]; then
-  cd "$HOME/shieldnetx-sandbox/backend" && source .venv/bin/activate && nohup uvicorn main:app --port 8001 > "$LOGDIR/sandbox-backend.log" 2>&1 &
+echo "[5/7] Starting Phishing Sandbox (port 8001 + 5500)..."
+if [ -d "$HOME/ShieldNetX/malware-sandbox/backend" ]; then
+  cd "$HOME/ShieldNetX/malware-sandbox/backend" && source .venv/bin/activate && nohup uvicorn main:app --port 8001 > "$LOGDIR/sandbox-backend.log" 2>&1 &
   deactivate
 fi
-if [ -d "$HOME/shieldnetx-sandbox/frontend" ]; then
-  cd "$HOME/shieldnetx-sandbox/frontend" && nohup python3 -m http.server 5500 > "$LOGDIR/sandbox-frontend.log" 2>&1 &
+if [ -d "$HOME/ShieldNetX/malware-sandbox/frontend" ]; then
+  cd "$HOME/ShieldNetX/malware-sandbox/frontend" && nohup python3 -m http.server 5500 > "$LOGDIR/sandbox-frontend.log" 2>&1 &
 fi
+
+echo "[7/7] Starting APK Analyzer Dashboard (port 5173)..."
+cd "$ROOT/dashboard" || exit 1
+nohup npm run dev > "$LOGDIR/dashboard.log" 2>&1 &
 
 sleep 3
 
@@ -56,7 +60,7 @@ echo "  🎣  Phishing Page     → http://localhost:8080"
 echo "  🔬  Phishing Sandbox  → http://localhost:5500"
 echo "  Logs → $LOGDIR/"
 
-echo "[6/6] Launching Chromium with extension + tabs..."
+echo "[6/7] Launching Chromium with extension + tabs..."
 CHROME_BIN=$(command -v chromium-browser || command -v chromium || command -v google-chrome)
 
 if [ -n "$CHROME_BIN" ]; then

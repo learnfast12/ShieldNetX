@@ -1,7 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense, lazy } from 'react';
 import { Upload, Shield, AlertTriangle, CheckCircle2, Clock, FileWarning, ChevronRight, FileSearch, ShieldAlert, ShieldCheck } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8000';
+const ParticleField = lazy(() => import('./three/ParticleField'));
+const ApkHeroScene = lazy(() => import('./three/ApkHeroScene'));
+
+const API_BASE = 'http://localhost:8010';
 
 const STAGES = [
   { key: 'queued', label: 'Ingestion' },
@@ -274,13 +277,13 @@ function ScoreGauge({ score, severity }) {
 
   return (
     <div style={{ position: 'relative', width: 140, height: 140, flexShrink: 0 }}>
-      <svg width="140" height="140" viewBox="0 0 140 140">
+      <svg width="140" height="140" viewBox="0 0 140 140" className="gauge-glow" style={{ '--glow-color': `${color}66` }}>
         <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
         <circle
           cx="70" cy="70" r="54" fill="none" stroke={color} strokeWidth="8"
           strokeDasharray={circumference} strokeDashoffset={offset}
           strokeLinecap="round" transform="rotate(-90 70 70)"
-          style={{ transition: 'stroke-dashoffset 1.2s ease-out', filter: `drop-shadow(0 0 6px ${color})` }}
+          style={{ transition: 'stroke-dashoffset 1.2s ease-out', filter: `drop-shadow(0 0 8px ${color})` }}
         />
       </svg>
       <div style={{
@@ -316,16 +319,39 @@ function TermHeader({ label, color }) {
 }
 
 function TermCard({ children, accentColor }) {
+  const ref = useRef(null);
+  const tilt = useRef('');
+
+  const onMove = (e) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    tilt.current = `perspective(1000px) rotateY(${px * 4}deg) rotateX(${-py * 4}deg)`;
+    el.style.transform = tilt.current;
+  };
+  const onLeave = () => {
+    if (ref.current) ref.current.style.transform = '';
+  };
+
   return (
-    <div style={{
-      position: 'relative', borderRadius: 10, padding: 18,
-      background: 'rgba(10,14,20,0.7)',
-      border: `1px solid ${accentColor ? `${accentColor}44` : 'rgba(255,255,255,0.08)'}`,
-      borderLeft: `3px solid ${accentColor || 'var(--border)'}`,
-      fontFamily: 'JetBrains Mono, monospace',
-      boxShadow: accentColor ? `0 0 24px ${accentColor}0f` : 'none',
-      marginBottom: 14,
-    }}>
+    <div
+      ref={ref}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      style={{
+        position: 'relative', borderRadius: 10, padding: 18,
+        background: 'rgba(10,14,20,0.7)',
+        border: `1px solid ${accentColor ? `${accentColor}44` : 'rgba(255,255,255,0.08)'}`,
+        borderLeft: `3px solid ${accentColor || 'var(--border)'}`,
+        fontFamily: 'JetBrains Mono, monospace',
+        boxShadow: accentColor ? `0 0 24px ${accentColor}0f` : 'none',
+        marginBottom: 14,
+        transition: 'transform .18s ease-out, box-shadow .2s',
+        willChange: 'transform',
+      }}
+    >
       {children}
     </div>
   );
@@ -1059,6 +1085,41 @@ function LiveScanDemo() {
   );
 }
 
+function TopNav() {
+  return (
+    <div style={{
+      position: 'relative', zIndex: 5, display: 'flex', alignItems: 'center', gap: 12,
+      padding: '13px 24px', borderBottom: '1px solid var(--border)',
+      background: 'rgba(7,11,20,0.65)', backdropFilter: 'blur(14px)',
+    }}>
+      <div style={{
+        width: 34, height: 34, borderRadius: 10,
+        background: 'linear-gradient(135deg, #3E7BFA, #8B5CF6 60%, #EC4899)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 4px 18px rgba(99,91,255,0.45)',
+      }}>
+        <Shield size={17} color="#fff" />
+      </div>
+      <span className="display" style={{ fontSize: 16, fontWeight: 700 }}>
+        ShieldNetX<span style={{ color: '#7AA6FF' }}>-APK</span>
+      </span>
+      <span style={{ flex: 1 }} />
+      <span style={{
+        display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, fontWeight: 700,
+        color: '#2DD4A0', padding: '6px 14px', borderRadius: 999,
+        border: '1px solid rgba(45,212,160,0.35)', background: 'rgba(45,212,160,0.07)',
+      }}>
+        <span style={{
+          width: 7, height: 7, borderRadius: '50%', background: '#2DD4A0',
+          boxShadow: '0 0 8px #2DD4A0', animation: 'blink-live 1.4s ease-in-out infinite',
+        }} />
+        SIX-LAYER PIPELINE ONLINE
+      </span>
+      <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>GenAI Fraud Analysis · BOI CyberShield 2026</span>
+    </div>
+  );
+}
+
 export default function App() {
   const [jobs, setJobs] = useState({});
   const [order, setOrder] = useState([]);
@@ -1125,20 +1186,24 @@ export default function App() {
   const selected = selectedId ? jobs[selectedId] : null;
 
   return (
-    <div style={{ display: 'flex', height: '100vh', position: 'relative' }}>
-      <div className="scan-bg" />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
+      <Suspense fallback={null}>
+        <ParticleField />
+      </Suspense>
       <div className="scan-sweep" />
+      <TopNav />
+      <div style={{ display: 'flex', flex: 1, minHeight: 0, position: 'relative', zIndex: 1 }}>
       {(order.length > 0) && (
-      <aside style={{ position: 'relative', zIndex: 1,
+      <aside style={{ position: 'relative',
         width: 300, borderRight: '1px solid var(--border)', display: 'flex',
-        flexDirection: 'column', background: 'var(--bg)',
+        flexDirection: 'column', background: 'rgba(10,14,23,0.72)', backdropFilter: 'blur(8px)',
       }}>
         <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
             <Shield size={18} color="var(--accent)" />
-            <span className="display" style={{ fontSize: 15, fontWeight: 700 }}>ShieldNetX-APK</span>
+            <span className="display" style={{ fontSize: 15, fontWeight: 700 }}>Scan Queue</span>
           </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>GenAI Fraud Analysis · BOI CyberShield 2026</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{order.length} file{order.length === 1 ? '' : 's'} this session</div>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 10px' }}>
           {order.length === 0 && (
@@ -1182,9 +1247,9 @@ export default function App() {
 
             <div style={{ position: 'relative', width: '100%', flex: 1, minHeight: 0 }}>
               <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
-                <div style={{ flex: 1, height: '100%', minWidth: 0 }}>
-                  <HeroIllustration showHeadline={false} />
-                </div>
+                <Suspense fallback={null}>
+                  <ApkHeroScene />
+                </Suspense>
                 <ConnectorBeam />
                 <CenterUploadZone onFiles={handleFiles} />
                 <ConnectorBeam flip />
@@ -1223,6 +1288,7 @@ export default function App() {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }
