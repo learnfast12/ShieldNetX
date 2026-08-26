@@ -1,13 +1,12 @@
 """
 Provider-agnostic GenAI layer for ShieldNetX-APK.
-Tries providers in order: Gemini (REST, free tier) -> local Ollama -> Claude (if key present) -> rule-based fallback.
+Tries providers in order: Gemini (REST, free tier) -> local Ollama (offline fallback) -> rule-based fallback.
 """
 import os
 import json
 import requests
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:7b")
 
@@ -94,23 +93,6 @@ def _try_ollama(findings: str):
         return json.loads(text)
     except Exception as e:
         print(f"[genai] Ollama failed: {e}")
-        return None
-
-def _try_claude(findings: str):
-    if not ANTHROPIC_API_KEY:
-        return None
-    try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-        msg = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=1000,
-            messages=[{"role": "user", "content": PROMPT_TEMPLATE.format(findings=findings)}],
-        )
-        text = msg.content[0].text.strip().strip("```json").strip("```").strip()
-        return json.loads(text)
-    except Exception as e:
-        print(f"[genai] Claude failed: {e}")
         return None
 
 def _rule_based_fallback(findings: str):
