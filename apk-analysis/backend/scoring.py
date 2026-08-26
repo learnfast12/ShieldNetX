@@ -1,5 +1,5 @@
 NEGATIVE_PHRASES = ["none", "none detected", "n/a", "not detected", "no evidence", "not applicable"]
-BENIGN_MARKERS = ["unknown", "novel", "benign", "legitimate", "clean", "safe"]
+BENIGN_MARKERS = ["benign", "legitimate", "clean", "safe"]
 MIN_CONFIDENCE_FOR_GENAI_SIGNALS = 60  # below this, GenAI's own uncertainty means we shouldn't score on its findings
 
 
