@@ -87,52 +87,123 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 const APK_BACKEND = "http://localhost:8010";
 const apkPollCache = {};
 
-chrome.downloads.onDeterminingFilename.addListener((item, suggest) => {
-  if (!item.filename.toLowerCase().endsWith(".apk")) {
-    suggest();
-    return;
-  }
-  console.log("[ShieldNetX] APK download detected:", item.filename, item.url);
-  // Let it save to disk first (we need bytes on disk to read + delete if needed)
-  suggest();
+chrome.downloads.onCreated.addListener((item) => {
+  const name = (item.filename || item.url || "").toLowerCase();
+  if (!name.endsWith(".apk")) return;
+
+  console.log("[ShieldNetX] APK download started, pausing pending scan:", item.url);
+  chrome.downloads.pause(item.id, () => {
+    if (chrome.runtime.lastError) {
+      console.warn("[ShieldNetX] Could not pause (may already be paused/complete):", chrome.runtime.lastError.message);
+    }
+    scanPausedApk(item);
+  });
 });
 
-chrome.downloads.onChanged.addListener(async (delta) => {
-  if (delta.state && delta.state.current === "complete") {
-    chrome.downloads.search({ id: delta.id }, async (items) => {
-      const item = items[0];
-      if (!item || !item.filename.toLowerCase().endsWith(".apk")) return;
-
-      console.log("[ShieldNetX] APK finished downloading, scanning:", item.filename);
-      await scanDownloadedApk(item);
-    });
-  }
-});
-
-async function scanDownloadedApk(item) {
+async function scanPausedApk(item) {
   try {
-    // Fetch the file bytes back via the file:// URL isn't accessible from extension;
-    // instead re-fetch from the original source URL to get bytes for upload.
+    // Try fetching bytes from the original source URL first (works for normal HTTP downloads).
     const fileResp = await fetch(item.finalUrl || item.url);
+    if (!fileResp.ok) throw new Error(`source fetch not ok: ${fileResp.status}`);
     const blob = await fileResp.blob();
 
+    const suggestedName = (item.filename || item.url).split(/[\\/]/).pop();
     const formData = new FormData();
-    formData.append("file", blob, item.filename.split(/[\\/]/).pop());
+    formData.append("file", blob, suggestedName);
 
     const uploadResp = await fetch(`${APK_BACKEND}/api/analyze`, {
       method: "POST",
       body: formData
     });
-    if (!uploadResp.ok) {
-      console.error("[ShieldNetX] APK upload failed:", uploadResp.status);
+    if (!uploadResp.ok) throw new Error(`upload not ok: ${uploadResp.status}`);
+    const { job_id } = await uploadResp.json();
+    console.log("[ShieldNetX] APK scan job started:", job_id, "- download held paused");
+
+    pollApkJob(job_id, item.id, suggestedName);
+  } catch (e) {
+    // Source URL likely a blob (e.g. WhatsApp Web) that this context can't fetch.
+    // Fall back: resume the download, then scan the completed file from disk via onChanged.
+    console.warn("[ShieldNetX] Could not scan before landing (likely blob source):", e.message, "- resuming, will scan after download completes");
+    pendingPostDownloadScan[item.id] = true;
+    chrome.downloads.resume(item.id);
+  }
+}
+
+const pendingPostDownloadScan = {};
+
+chrome.downloads.onChanged.addListener(async (delta) => {
+  if (!(delta.state && delta.state.current === "complete")) return;
+  if (!pendingPostDownloadScan[delta.id]) return;
+  delete pendingPostDownloadScan[delta.id];
+
+  chrome.downloads.search({ id: delta.id }, async (items) => {
+    const item = items[0];
+    if (!item || !item.filename.toLowerCase().endsWith(".apk")) return;
+
+    console.log("[ShieldNetX] Post-download scan starting for:", item.filename);
+    try {
+      const fileUrl = "file://" + item.filename;
+      const fileResp = await fetch(fileUrl);
+      if (!fileResp.ok) throw new Error(`file:// fetch not ok: ${fileResp.status}`);
+      const blob = await fileResp.blob();
+
+      const suggestedName = item.filename.split(/[\\/]/).pop();
+      const formData = new FormData();
+      formData.append("file", blob, suggestedName);
+
+      const uploadResp = await fetch(`${APK_BACKEND}/api/analyze`, {
+        method: "POST",
+        body: formData
+      });
+      if (!uploadResp.ok) throw new Error(`upload not ok: ${uploadResp.status}`);
+      const { job_id } = await uploadResp.json();
+      console.log("[ShieldNetX] Post-download scan job started:", job_id, "for", suggestedName);
+
+      pollApkJobPostDownload(job_id, item.id, suggestedName);
+    } catch (e) {
+      console.error("[ShieldNetX] Post-download scan error:", e.message);
+    }
+  });
+});
+
+async function pollApkJobPostDownload(jobId, downloadId, filename, attempt = 0) {
+  if (attempt > 60) {
+    console.error("[ShieldNetX] Post-download scan timed out for", filename);
+    return;
+  }
+  try {
+    const statusResp = await fetch(`${APK_BACKEND}/api/status/${jobId}`);
+    const status = await statusResp.json();
+
+    if (status.stage === "complete") {
+      const reportResp = await fetch(`${APK_BACKEND}/api/report/${jobId}`);
+      const report = await reportResp.json();
+      const severity = report?.risk?.severity || "UNKNOWN";
+      console.log("[ShieldNetX] Post-download APK verdict:", severity, filename);
+
+      if (severity === "CRITICAL" || severity === "HIGH") {
+        chrome.downloads.removeFile(downloadId, () => {
+          chrome.downloads.erase({ id: downloadId });
+          console.warn("[ShieldNetX] Malicious APK deleted after landing:", filename, severity);
+          chrome.notifications?.create({
+            type: "basic",
+            iconUrl: "icons/icon128.png",
+            title: "ShieldNetX — APK Blocked",
+            message: `${filename} was flagged ${severity} and deleted.`
+          });
+        });
+      } else {
+        console.log("[ShieldNetX] Post-download APK verdict clean/low, leaving file in place:", filename, severity);
+      }
       return;
     }
-    const { job_id } = await uploadResp.json();
-    console.log("[ShieldNetX] APK scan job started:", job_id);
-
-    pollApkJob(job_id, item.id, item.filename);
+    if (status.stage === "error") {
+      console.error("[ShieldNetX] Post-download scan error:", status.error);
+      return;
+    }
+    setTimeout(() => pollApkJobPostDownload(jobId, downloadId, filename, attempt + 1), 2000);
   } catch (e) {
-    console.error("[ShieldNetX] APK scan error:", e);
+    console.error("[ShieldNetX] Post-download poll error:", e);
   }
 }
 
@@ -152,15 +223,19 @@ async function pollApkJob(jobId, downloadId, filename, attempt = 0) {
       console.log("[ShieldNetX] APK verdict:", severity, filename);
 
       if (severity === "CRITICAL" || severity === "HIGH") {
-        chrome.downloads.removeFile(downloadId, () => {
+        chrome.downloads.cancel(downloadId, () => {
           chrome.downloads.erase({ id: downloadId });
-          console.warn("[ShieldNetX] Malicious APK deleted:", filename, severity);
+          console.warn("[ShieldNetX] Malicious APK blocked before landing:", filename, severity);
           chrome.notifications?.create({
             type: "basic",
             iconUrl: "icons/icon128.png",
             title: "ShieldNetX — APK Blocked",
-            message: `${filename} was flagged ${severity} and deleted.`
+            message: `${filename} was flagged ${severity} and blocked before it finished downloading.`
           });
+        });
+      } else {
+        chrome.downloads.resume(downloadId, () => {
+          console.log("[ShieldNetX] APK verdict clean/low, resuming download:", filename, severity);
         });
       }
       return;
