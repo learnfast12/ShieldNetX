@@ -1,82 +1,253 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ShieldNetX</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { width: 340px; background: #0a0a0f; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-    .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid #1a1a3a; }
-    .brand { font-size: 16px; font-weight: 800; }
-    .tagline { font-size: 10px; color: #666; letter-spacing: 1px; }
-    .status { background: #00ff8822; border: 1px solid #00ff88; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #00ff88; margin-left: auto; }
-    .scan-section { margin-bottom: 14px; }
-    .scan-label { font-size: 10px; color: #666; letter-spacing: 1px; margin-bottom: 6px; }
-    .input-row { display: flex; gap: 6px; }
-    .url-input { flex: 1; background: #0d0d1a; border: 1px solid #1a1a3a; color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 11px; outline: none; font-family: monospace; }
-    .url-input:focus { border-color: #00ff88; }
-    .url-input::placeholder { color: #444; }
-    .btn-analyze { background: #00ff88; color: #000; border: none; border-radius: 6px; padding: 8px 12px; font-size: 11px; font-weight: 800; cursor: pointer; }
-    .btn-analyze:hover { background: #00cc6a; }
-    .btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
-    .result-card { background: #0d0d1a; border: 1px solid #1a1a3a; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
-    .result-title { font-size: 10px; color: #666; letter-spacing: 1px; margin-bottom: 10px; }
-    .score-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .score-big { font-size: 40px; font-weight: 900; }
-    .level { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
-    .url-text { font-size: 10px; color: #555; word-break: break-all; margin-bottom: 10px; }
-    .signals { margin-top: 8px; }
-    .signal-item { font-size: 10px; color: #aaa; padding: 3px 0; border-bottom: 1px solid #111; display: flex; gap: 6px; align-items: flex-start; }
-    .signal-item:last-child { border-bottom: none; }
-    .dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
-    .btn-sandbox { width: 100%; background: #00aaff22; border: 1px solid #00aaff; color: #00aaff; border-radius: 8px; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; }
-    .btn-sandbox:hover { background: #00aaff33; }
-    .btn-sandbox:disabled { opacity: 0.3; cursor: not-allowed; }
-    .no-scan { text-align: center; color: #444; font-size: 12px; padding: 16px 0; }
-    .loading { text-align: center; color: #00ff88; font-size: 11px; padding: 14px 0; font-family: monospace; animation: pulse 1s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .footer { text-align: center; font-size: 10px; color: #333; letter-spacing: 1px; margin-top: 10px; }
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #1a1a3a; }
-    .toggle-label { font-size: 10px; color: #666; letter-spacing: 1px; }
-    .switch { position: relative; display: inline-block; width: 38px; height: 20px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #1a1a3a; transition: .2s; border-radius: 20px; }
-    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: #fff; transition: .2s; border-radius: 50%; }
-    input:checked + .slider { background-color: #00ff88; }
-    input:checked + .slider:before { transform: translateX(18px); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShieldNetX</title>
+<style>
+  :root {
+    --bg: #04070c;
+    --panel: #0a1119;
+    --panel-2: #0d1823;
+    --line: #14212e;
+    --line-2: #1f3447;
+    --txt: #d6e5f1;
+    --mute: #6c8296;
+    --cy: #22e6ff;
+    --gr: #2dffa8;
+    --red: #ff3b5c;
+    --sev: #2dffa8;
+    --mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, "DejaVu Sans Mono", Consolas, monospace;
+    --sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 380px;
+    background: var(--bg);
+    color: var(--txt);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 14px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(420px 220px at 85% -10%, rgba(34,230,255,.10), transparent 70%),
+      radial-gradient(360px 200px at -10% 110%, rgba(45,255,168,.06), transparent 70%),
+      linear-gradient(rgba(34,230,255,.035) 1px, transparent 1px) 0 0 / 22px 22px,
+      linear-gradient(90deg, rgba(34,230,255,.035) 1px, transparent 1px) 0 0 / 22px 22px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body > * { position: relative; z-index: 1; }
+
+  /* ---------- header ---------- */
+  .hdr { display: flex; align-items: center; gap: 11px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+  .logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: grid; place-items: center;
+    color: var(--cy);
+    background: linear-gradient(145deg, rgba(34,230,255,.16), rgba(34,230,255,.03));
+    border: 1px solid rgba(34,230,255,.35);
+    box-shadow: 0 0 18px rgba(34,230,255,.18), inset 0 0 12px rgba(34,230,255,.08);
+  }
+  .logo svg { width: 22px; height: 22px; }
+  .brand-wrap { flex: 1; min-width: 0; }
+  .brand { font-weight: 800; font-size: 16px; letter-spacing: .14em; color: #fff; line-height: 1.1; }
+  .brand span { color: var(--cy); }
+  .tagline { font-family: var(--mono); font-size: 8.5px; letter-spacing: .22em; color: var(--mute); margin-top: 4px; }
+
+  .status {
+    font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: .12em;
+    padding: 5px 9px 5px 8px; border-radius: 999px;
+    border: 1px solid var(--line-2); color: var(--mute); background: rgba(255,255,255,.02);
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .status::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+  }
+  .status[data-state="active"]  { color: var(--gr); border-color: rgba(45,255,168,.4); background: rgba(45,255,168,.07); }
+  .status[data-state="active"]::before { animation: pulse 1.8s ease-in-out infinite; }
+  .status[data-state="down"],
+  .status[data-state="offline"] { color: var(--red); border-color: rgba(255,59,92,.45); background: rgba(255,59,92,.08); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin-top: 12px;
+  }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; }
+  .toggle-label { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .18em; color: var(--txt); }
+  .toggle-sub { font-size: 11px; color: var(--mute); margin-top: 3px; }
+  .switch { position: relative; width: 44px; height: 24px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; cursor: pointer; border-radius: 999px;
+    background: #101c28; border: 1px solid var(--line-2); transition: .25s;
+  }
+  .slider::before {
+    content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px;
+    border-radius: 50%; background: var(--mute); transition: .25s;
+  }
+  .switch input:checked + .slider { background: rgba(45,255,168,.14); border-color: rgba(45,255,168,.55); box-shadow: 0 0 14px rgba(45,255,168,.2); }
+  .switch input:checked + .slider::before { transform: translateX(20px); background: var(--gr); box-shadow: 0 0 10px var(--gr); }
+
+  /* ---------- scan ---------- */
+  .scan-section { margin-top: 16px; }
+  .scan-label, .result-title {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .24em; color: var(--mute);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .scan-label::before { content: ">_"; color: var(--cy); letter-spacing: 0; font-weight: 700; }
+  .input-row { display: flex; gap: 8px; margin-top: 8px; }
+  .url-input {
+    flex: 1; min-width: 0; padding: 11px 12px;
+    background: #060c13; color: var(--txt);
+    border: 1px solid var(--line-2); border-radius: 9px;
+    font-family: var(--mono); font-size: 11.5px; outline: none; transition: .2s;
+  }
+  .url-input::placeholder { color: #3b5063; }
+  .url-input:focus { border-color: var(--cy); box-shadow: 0 0 0 3px rgba(34,230,255,.12), 0 0 18px rgba(34,230,255,.12); }
+  .btn-analyze {
+    padding: 0 18px; border: none; border-radius: 9px; cursor: pointer;
+    font-family: var(--mono); font-weight: 800; font-size: 11px; letter-spacing: .14em;
+    color: #02141a; background: linear-gradient(135deg, #22e6ff, #2dffa8);
+    box-shadow: 0 0 18px rgba(34,230,255,.28); transition: .2s;
+  }
+  .btn-analyze:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 26px rgba(34,230,255,.45); }
+  .btn-analyze:disabled { opacity: .45; cursor: wait; }
+
+  /* ---------- result ---------- */
+  .result-card { padding: 14px; position: relative; }
+  .result-card::before, .result-card::after {
+    content: ""; position: absolute; width: 12px; height: 12px; border: 1.5px solid var(--cy); opacity: .7;
+  }
+  .result-card::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 12px; }
+  .result-card::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 12px; }
+  .result-title { margin-bottom: 12px; }
+  .result-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-2), transparent); }
+
+  .no-scan { text-align: center; color: var(--mute); font-size: 12px; line-height: 1.7; padding: 14px 4px; }
+  .loading {
+    text-align: center; color: var(--cy); font-family: var(--mono); font-size: 11px; letter-spacing: .18em; padding: 18px 4px 12px;
+  }
+  .loading .bar { height: 2px; margin-top: 14px; background: var(--line); border-radius: 2px; overflow: hidden; position: relative; }
+  .loading .bar::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 40%;
+    background: linear-gradient(90deg, transparent, var(--cy), transparent);
+    animation: sweep 1.1s linear infinite;
+  }
+  @keyframes sweep { from { left: -40%; } to { left: 100%; } }
+
+  .score-row { display: flex; align-items: center; gap: 16px; }
+  .gauge { position: relative; width: 86px; height: 86px; flex: none; }
+  .gauge svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+  .gauge .track { fill: none; stroke: #101c28; stroke-width: 7; }
+  .gauge .fg {
+    fill: none; stroke: var(--sev); stroke-width: 7; stroke-linecap: round;
+    filter: drop-shadow(0 0 5px var(--sev));
+    transition: stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1);
+  }
+  .score-big {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 800; font-size: 26px; color: var(--sev);
+    text-shadow: 0 0 14px color-mix(in srgb, var(--sev) 55%, transparent);
+  }
+  .score-meta { flex: 1; min-width: 0; }
+  .level {
+    display: inline-block; font-family: var(--mono); font-weight: 800; font-size: 11px; letter-spacing: .2em;
+    padding: 5px 10px; border-radius: 6px;
+    color: var(--sev); background: color-mix(in srgb, var(--sev) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sev) 45%, transparent);
+  }
+  .score-cap { font-family: var(--mono); font-size: 9px; letter-spacing: .2em; color: var(--mute); margin-top: 8px; }
+  .url-text {
+    margin-top: 12px; padding: 8px 10px; border-radius: 8px;
+    background: #060c13; border: 1px solid var(--line);
+    font-family: var(--mono); font-size: 10.5px; color: #8fb3c9;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .signals { margin-top: 12px; display: grid; gap: 6px; }
+  .signal-item {
+    display: grid; grid-template-columns: 108px 1fr auto; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 8px;
+    background: rgba(255,255,255,.02); border: 1px solid var(--line); border-left: 2px solid #22323f;
+    font-size: 11px; color: var(--mute);
+  }
+  .signal-item.hot { border-left-color: var(--sev); color: var(--txt); background: color-mix(in srgb, var(--sev) 6%, transparent); }
+  .sig-name { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; color: var(--mute); white-space: nowrap; }
+  .signal-item.hot .sig-name { color: var(--sev); }
+  .sig-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sig-score { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--mute); }
+  .signal-item.hot .sig-score { color: var(--sev); }
+  .dot { display: none; }
+
+  /* ---------- sandbox + footer ---------- */
+  .btn-sandbox {
+    width: 100%; margin-top: 12px; padding: 12px; cursor: pointer;
+    font-family: var(--mono); font-weight: 700; font-size: 11px; letter-spacing: .2em;
+    color: var(--cy); background: rgba(34,230,255,.06);
+    border: 1px solid rgba(34,230,255,.4); border-radius: 10px; transition: .2s;
+  }
+  .btn-sandbox:hover:not(:disabled) { background: rgba(34,230,255,.14); box-shadow: 0 0 22px rgba(34,230,255,.2); }
+  .btn-sandbox:disabled { opacity: .35; cursor: not-allowed; }
+  .footer {
+    margin-top: 14px; text-align: center; font-family: var(--mono);
+    font-size: 8.5px; letter-spacing: .26em; color: #3e5568;
+  }
+</style>
 </head>
 <body>
-  <div class="header">
-    <div>🛡️</div>
-    <div>
-      <div class="brand">ShieldNetX</div>
+  <header class="hdr">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M12 2.5l8 3v6.2c0 4.6-3.2 8.3-8 9.8-4.8-1.5-8-5.2-8-9.8V5.5l8-3z"/>
+        <path d="M9 12.2l2.2 2.2L15.5 10"/>
+      </svg>
+    </div>
+    <div class="brand-wrap">
+      <div class="brand">SHIELDNET<span>X</span></div>
       <div class="tagline">CYBER THREAT INTELLIGENCE</div>
     </div>
-   <div class="status" id="statusBadge">● CHECKING...</div>
-  </div>
-  <div class="toggle-row">
-    <div class="toggle-label">PROTECTION</div>
+    <div class="status" id="statusBadge" data-state="checking">CHECKING</div>
+  </header>
+
+  <section class="card toggle-row">
+    <div>
+      <div class="toggle-label">PROTECTION</div>
+      <div class="toggle-sub">Real-time link interception</div>
+    </div>
     <label class="switch">
       <input type="checkbox" id="protectionToggle" checked>
       <span class="slider"></span>
     </label>
-  </div>
-  <div class="scan-section">
+  </section>
+
+  <section class="scan-section">
     <div class="scan-label">SCAN ANY LINK</div>
     <div class="input-row">
-      <input class="url-input" id="urlInput" type="text" placeholder="https://suspicious-site.com" />
+      <input class="url-input" id="urlInput" type="text" placeholder="https://suspicious-site.com" spellcheck="false" autocomplete="off" />
       <button class="btn-analyze" id="analyzeBtn">SCAN</button>
     </div>
-  </div>
-  <div class="result-card">
+  </section>
+
+  <section class="card result-card">
     <div class="result-title">THREAT ANALYSIS</div>
     <div id="scanContent">
-      <div class="no-scan">No links scanned yet.<br>Browse normally — we protect you silently.</div>
+      <div class="no-scan">No links scanned yet.<br>Browse normally &mdash; we protect you silently.</div>
     </div>
-  </div>
-  <button class="btn-sandbox" id="sandboxBtn" disabled>🔬 Open in Sandbox</button>
-  <div class="footer">SHIELDNETX IS PROTECTING YOU 🛡️</div>
+  </section>
+
+  <button class="btn-sandbox" id="sandboxBtn" disabled>OPEN IN SANDBOX</button>
+  <div class="footer">SHIELDNETX // ACTIVE MONITORING</div>
   <script src="popup.js"></script>
 </body>
 </html>

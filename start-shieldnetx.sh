@@ -7,7 +7,7 @@ echo "  ███████║██║  ██║██║██████�
 echo "  ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═════╝ "
 echo "         N E T X  —  Team Omega 404 🛡️"
 
-ROOT="$HOME/ShieldNetX"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGDIR="$ROOT/logs"
 mkdir -p "$LOGDIR"
 
@@ -38,12 +38,12 @@ cd "$ROOT/demo-phishing-page" || exit 1
 nohup python3 -m http.server 8080 > "$LOGDIR/phishing.log" 2>&1 &
 
 echo "[5/8] Starting Phishing Sandbox (port 8001 + 5500)..."
-if [ -d "$HOME/ShieldNetX/malware-sandbox/backend" ]; then
-  cd "$HOME/ShieldNetX/malware-sandbox/backend" && source .venv/bin/activate && nohup uvicorn main:app --port 8001 > "$LOGDIR/sandbox-backend.log" 2>&1 &
+if [ -d "$ROOT/malware-sandbox/backend" ]; then
+  cd "$ROOT/malware-sandbox/backend" && source .venv/bin/activate && nohup uvicorn main:app --port 8001 > "$LOGDIR/sandbox-backend.log" 2>&1 &
   deactivate
 fi
-if [ -d "$HOME/ShieldNetX/malware-sandbox/frontend" ]; then
-  cd "$HOME/ShieldNetX/malware-sandbox/frontend" && nohup python3 -m http.server 5500 > "$LOGDIR/sandbox-frontend.log" 2>&1 &
+if [ -d "$ROOT/malware-sandbox/frontend" ]; then
+  cd "$ROOT/malware-sandbox/frontend" && nohup python3 -m http.server 5500 > "$LOGDIR/sandbox-frontend.log" 2>&1 &
 fi
 
 echo "[6/8] Starting APK Analyzer Backend (port 8010)..."

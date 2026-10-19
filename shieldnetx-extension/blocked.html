@@ -1,144 +1,294 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ShieldNetX — Blocked</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #000;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 30px 20px;
-    }
-    .bg-glow {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse at center, #ff000015 0%, #000 70%);
-      pointer-events: none;
-      animation: pulse-bg 2s ease-in-out infinite;
-    }
-    @keyframes pulse-bg { 0%,100%{opacity:0.5} 50%{opacity:1} }
-    .container { max-width: 600px; width: 100%; position: relative; z-index: 1; }
-    .shield-icon {
-      text-align: center;
-      font-size: 64px;
-      margin-bottom: 16px;
-      animation: shield-pulse 1.5s ease-in-out infinite;
-      filter: drop-shadow(0 0 20px #ff2d2d);
-    }
-    @keyframes shield-pulse {
-      0%,100%{transform:scale(1);filter:drop-shadow(0 0 10px #ff2d2d)}
-      50%{transform:scale(1.05);filter:drop-shadow(0 0 30px #ff2d2d)}
-    }
-    .title { text-align:center; font-size:36px; font-weight:900; color:#ff2d2d; letter-spacing:2px; margin-bottom:6px; text-shadow:0 0 30px #ff2d2d88; }
-    .subtitle { text-align:center; color:#666; font-size:14px; margin-bottom:24px; }
-    .score-box {
-      background:#0a0000; border:2px solid #ff2d2d; border-radius:16px;
-      padding:28px; text-align:center; margin-bottom:16px;
-      box-shadow:0 0 40px #ff2d2d33, inset 0 0 40px #ff2d2d11;
-    }
-    #score {
-      font-size:90px; font-weight:900; color:#ff2d2d; line-height:1;
-      text-shadow:0 0 40px #ff2d2d;
-      animation:score-pulse 1.5s ease-in-out infinite;
-    }
-    @keyframes score-pulse {
-      0%,100%{text-shadow:0 0 20px #ff2d2d}
-      50%{text-shadow:0 0 60px #ff2d2d, 0 0 100px #ff2d2d88}
-    }
-    .score-label { color:#555; font-size:12px; letter-spacing:3px; margin:8px 0; }
-    #level {
-      display:inline-block; background:#ff2d2d; color:#fff;
-      padding:6px 28px; border-radius:30px; font-weight:900;
-      font-size:14px; letter-spacing:3px; box-shadow:0 0 20px #ff2d2d66;
-    }
-    #blocked-url {
-      display:block; background:#0a0a0a; border:1px solid #222;
-      border-radius:10px; padding:14px 18px; margin-bottom:16px;
-      font-size:13px; color:#ff6666; word-break:break-all;
-    }
-    .stolen-box { background:#0a0000; border:1px solid #ff2d2d44; border-radius:12px; padding:20px; margin-bottom:16px; }
-    .stolen-title { color:#ff4444; font-size:13px; font-weight:700; margin-bottom:4px; }
-    .stolen-sub { color:#555; font-size:12px; margin-bottom:14px; }
-    #stolen-data { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .stolen-item { background:#111; border:1px solid #1a1a1a; border-radius:8px; padding:12px; }
-    .stolen-label { color:#444; font-size:10px; letter-spacing:1px; margin-bottom:4px; }
-    .stolen-value { color:#ccc; font-size:13px; font-family:monospace; }
-    .safe-banner {
-      background:#001a00; border:1px solid #00c85344; border-radius:10px;
-      padding:12px 18px; color:#00c853; font-size:13px; margin-bottom:16px;
-    }
-    #report-btn {
-      width:100%; padding:16px;
-      background:linear-gradient(135deg,#ff2d2d,#ff6b00);
-      color:#fff; border:none; border-radius:12px;
-      font-size:15px; font-weight:800; cursor:pointer;
-      letter-spacing:1px; margin-bottom:12px;
-      box-shadow:0 4px 20px #ff2d2d44;
-      transition:transform 0.2s, box-shadow 0.2s;
-    }
-    #report-btn:hover { transform:translateY(-2px); box-shadow:0 8px 30px #ff2d2d66; }
-    .proceed { text-align:center; color:#333; font-size:12px; cursor:pointer; text-decoration:underline; letter-spacing:1px; }
-    .proceed:hover { color:#555; }
-    #report-modal {
-      display:none; position:fixed; top:0;left:0;right:0;bottom:0;
-      background:#000000cc; z-index:999;
-      align-items:center; justify-content:center;
-    }
-    .modal-box { background:#0a0a0a; border:1px solid #333; border-radius:16px; padding:32px; max-width:400px; width:90%; text-align:center; }
-    .modal-icon { font-size:48px; margin-bottom:12px; }
-    .modal-title { font-size:20px; font-weight:800; margin-bottom:16px; color:#fff; }
-    .modal-body { text-align:left; }
-    .report-detail { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1a1a1a; font-size:13px; color:#aaa; }
-    #modal-status { color:#00c853; font-size:14px; margin:16px 0; }
-    .animate { animation: fadeIn 0.3s ease forwards; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShieldNetX — Blocked</title>
+<style>
+  :root {
+    --bg: #03060a;
+    --panel: #0a1119;
+    --panel-2: #0d1823;
+    --line: #14212e;
+    --line-2: #213648;
+    --txt: #d6e5f1;
+    --mute: #6c8296;
+    --cy: #22e6ff;
+    --gr: #2dffa8;
+    --red: #ff3b5c;
+    --sev: #ff3b5c;
+    --mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, "DejaVu Sans Mono", Consolas, monospace;
+    --sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    background: var(--bg); color: var(--txt); font-family: var(--sans);
+    position: relative; overflow-x: hidden;
+  }
+
+  /* ---------- atmosphere ---------- */
+  .bg-grid {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      linear-gradient(rgba(34,230,255,.04) 1px, transparent 1px) 0 0 / 44px 44px,
+      linear-gradient(90deg, rgba(34,230,255,.04) 1px, transparent 1px) 0 0 / 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
+            mask-image: radial-gradient(ellipse at 50% 30%, #000 20%, transparent 75%);
+  }
+  .bg-glow {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(700px 380px at 50% -8%, color-mix(in srgb, var(--sev) 22%, transparent), transparent 70%),
+      radial-gradient(500px 300px at 100% 100%, rgba(34,230,255,.07), transparent 70%);
+  }
+  .scanline {
+    position: fixed; left: 0; right: 0; height: 120px; z-index: 0; pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(34,230,255,.05), transparent);
+    animation: scan 7s linear infinite;
+  }
+  @keyframes scan { from { top: -120px; } to { top: 100%; } }
+
+  .container { position: relative; z-index: 1; max-width: 880px; margin: 0 auto; padding: 28px 22px 48px; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: 12px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; color: var(--mute);
+  }
+  .topbar .mark { width: 26px; height: 26px; color: var(--cy); flex: none; }
+  .topbar b { color: #fff; font-weight: 800; letter-spacing: .2em; }
+  .topbar b span { color: var(--cy); }
+  .topbar .spacer { flex: 1; }
+  .topbar .meta { text-align: right; line-height: 1.7; }
+  .topbar .meta em { font-style: normal; color: var(--txt); }
+
+  /* ---------- hero ---------- */
+  .hero { display: grid; grid-template-columns: 1fr 250px; gap: 28px; align-items: center; margin-top: 34px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .26em; color: var(--sev);
+    padding: 6px 12px; border-radius: 6px;
+    background: color-mix(in srgb, var(--sev) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sev) 40%, transparent);
+  }
+  .eyebrow .led { width: 7px; height: 7px; border-radius: 50%; background: var(--sev); box-shadow: 0 0 10px var(--sev); animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  .title {
+    margin-top: 18px; font-size: 46px; line-height: 1.04; font-weight: 800; letter-spacing: -.02em; color: #fff;
+  }
+  .title span { color: var(--sev); text-shadow: 0 0 28px color-mix(in srgb, var(--sev) 55%, transparent); }
+  .subtitle { margin-top: 12px; font-size: 15px; line-height: 1.6; color: var(--mute); max-width: 460px; }
+
+  #blocked-url {
+    margin-top: 22px; padding: 12px 14px; border-radius: 10px;
+    background: #060c13; border: 1px solid var(--line-2); border-left: 3px solid var(--sev);
+    font-family: var(--mono); font-size: 12px; color: #9fc1d6; word-break: break-all; line-height: 1.5;
+  }
+  #blocked-url::before {
+    content: "TARGET"; display: block; margin-bottom: 5px;
+    font-size: 9px; letter-spacing: .24em; color: var(--mute);
+  }
+
+  /* ---------- score ---------- */
+  .score-box {
+    text-align: center; padding: 22px 18px; border-radius: 16px; position: relative;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line-2);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--sev) 14%, transparent);
+  }
+  .score-box::before, .score-box::after {
+    content: ""; position: absolute; width: 16px; height: 16px; border: 2px solid var(--sev); opacity: .85;
+  }
+  .score-box::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 16px; }
+  .score-box::after  { bottom: -1px; right: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 16px; }
+  .gauge-lg { position: relative; width: 150px; height: 150px; margin: 0 auto; }
+  .gauge-lg svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+  .gauge-lg .track { fill: none; stroke: #101c28; stroke-width: 8; }
+  .gauge-lg .fg {
+    fill: none; stroke: var(--sev); stroke-width: 8; stroke-linecap: round;
+    filter: drop-shadow(0 0 7px var(--sev));
+    transition: stroke-dashoffset 1.3s cubic-bezier(.2,.8,.2,1);
+  }
+  #score {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--mono); font-weight: 800; font-size: 46px; color: var(--sev);
+    text-shadow: 0 0 22px color-mix(in srgb, var(--sev) 60%, transparent);
+  }
+  .score-label { margin-top: 14px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .24em; color: var(--mute); }
+  #level {
+    display: inline-block; margin-top: 10px; padding: 6px 14px; border-radius: 6px;
+    font-family: var(--mono); font-weight: 800; font-size: 12px; letter-spacing: .26em;
+    color: var(--sev); background: color-mix(in srgb, var(--sev) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--sev) 45%, transparent);
+  }
+
+  /* ---------- exposure ---------- */
+  .stolen-box {
+    margin-top: 30px; padding: 20px; border-radius: 14px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line-2);
+  }
+  .stolen-title {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .2em; color: var(--sev);
+  }
+  .stolen-title::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--sev); box-shadow: 0 0 10px var(--sev); }
+  .stolen-sub { margin-top: 6px; font-size: 12.5px; color: var(--mute); }
+  #stolen-data { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stolen-item {
+    padding: 12px 14px; border-radius: 10px; background: #060c13;
+    border: 1px solid var(--line); position: relative; overflow: hidden;
+  }
+  .stolen-item::after {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--cy); opacity: .6;
+  }
+  .stolen-item.red::after { background: var(--red); opacity: 1; }
+  .stolen-label { font-family: var(--mono); font-size: 9px; letter-spacing: .22em; color: var(--mute); }
+  .stolen-value { margin-top: 7px; font-family: var(--mono); font-size: 14px; font-weight: 600; color: #e8f4fb; word-break: break-all; }
+  .stolen-item.red .stolen-value { color: var(--red); text-shadow: 0 0 14px rgba(255,59,92,.4); }
+  .animate { animation: rise .55s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .safe-banner {
+    margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13.5px; line-height: 1.5; color: #bff7de;
+    background: rgba(45,255,168,.07); border: 1px solid rgba(45,255,168,.3);
+  }
+  .safe-banner .tick { flex: none; width: 22px; height: 22px; color: var(--gr); }
+
+  /* ---------- actions ---------- */
+  .actions { margin-top: 26px; text-align: center; }
+  #report-btn {
+    width: 100%; padding: 16px; cursor: pointer; border-radius: 12px;
+    font-family: var(--mono); font-weight: 800; font-size: 12.5px; letter-spacing: .2em;
+    color: #fff; background: linear-gradient(135deg, #ff3b5c, #c4163a);
+    border: 1px solid rgba(255,120,145,.5);
+    box-shadow: 0 0 30px rgba(255,59,92,.28); transition: .2s;
+  }
+  #report-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 0 44px rgba(255,59,92,.5); }
+  #report-btn:disabled { opacity: .6; cursor: wait; }
+  .proceed {
+    display: inline-block; margin-top: 18px; cursor: pointer; padding: 6px 10px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; color: #3f566a; transition: .2s;
+  }
+  .proceed:hover { color: var(--red); }
+
+  /* ---------- modal ---------- */
+  #report-modal {
+    display: none; position: fixed; inset: 0; z-index: 10; align-items: center; justify-content: center;
+    background: rgba(2,5,9,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .modal-box {
+    width: min(460px, 92vw); padding: 28px; border-radius: 16px; text-align: center;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line-2); box-shadow: 0 0 60px rgba(34,230,255,.12);
+  }
+  .modal-icon {
+    width: 54px; height: 54px; margin: 0 auto; border-radius: 50%;
+    border: 2px solid rgba(34,230,255,.25); border-top-color: var(--cy);
+    animation: spin 1s linear infinite;
+  }
+  .modal-icon.done {
+    animation: none; border-color: var(--gr); position: relative;
+    box-shadow: 0 0 24px rgba(45,255,168,.35);
+  }
+  .modal-icon.done::after {
+    content: ""; position: absolute; left: 17px; top: 9px; width: 12px; height: 22px;
+    border: solid var(--gr); border-width: 0 3px 3px 0; transform: rotate(45deg);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .modal-title { margin-top: 18px; font-size: 20px; font-weight: 800; color: #fff; letter-spacing: .02em; }
+  #modal-status { margin-top: 10px; min-height: 20px; font-family: var(--mono); font-size: 12px; color: var(--cy); letter-spacing: .06em; }
+  #modal-details { margin-top: 14px; text-align: left; }
+  .report-detail {
+    display: flex; justify-content: space-between; gap: 14px; padding: 10px 0;
+    border-bottom: 1px solid var(--line); font-size: 12.5px;
+  }
+  .report-detail span:first-child { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--mute); text-transform: uppercase; }
+  .report-detail span:last-child { font-family: var(--mono); color: #e8f4fb; text-align: right; }
+  #close-btn {
+    margin-top: 18px; width: 100%; padding: 13px; cursor: pointer; border: none; border-radius: 10px;
+    font-family: var(--mono); font-weight: 800; font-size: 12px; letter-spacing: .2em;
+    color: #02141a; background: linear-gradient(135deg, #22e6ff, #2dffa8);
+  }
+
+  @media (max-width: 720px) {
+    .hero { grid-template-columns: 1fr; }
+    .title { font-size: 36px; }
+    #stolen-data { grid-template-columns: 1fr; }
+    .topbar .meta { display: none; }
+  }
+</style>
 </head>
 <body>
+  <div class="bg-grid"></div>
   <div class="bg-glow"></div>
-  <div class="container">
-    <div class="shield-icon">🛡️</div>
-    <div class="title">Attack Blocked!</div>
-    <div class="subtitle">ShieldNetX intercepted this link before it could harm you</div>
+  <div class="scanline"></div>
 
-    <div class="score-box">
-      <div id="score">--</div>
-      <div class="score-label">THREAT SCORE OUT OF 100</div>
-      <div id="level">SCANNING</div>
+  <main class="container">
+    <div class="topbar">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M12 2.5l8 3v6.2c0 4.6-3.2 8.3-8 9.8-4.8-1.5-8-5.2-8-9.8V5.5l8-3z"/>
+        <path d="M9 12.2l2.2 2.2L15.5 10"/>
+      </svg>
+      <div><b>SHIELDNET<span>X</span></b> &nbsp;//&nbsp; THREAT INTERCEPT</div>
+      <div class="spacer"></div>
+      <div class="meta">
+        INCIDENT <em id="incident-id">--</em><br>
+        <em id="incident-ts">--</em>
+      </div>
     </div>
 
-    <div id="blocked-url">🔗 Loading...</div>
+    <section class="hero">
+      <div>
+        <div class="eyebrow"><span class="led"></span>THREAT INTERCEPTED</div>
+        <h1 class="title">Access <span>Blocked</span></h1>
+        <p class="subtitle">ShieldNetX intercepted this link before it could harm you. No page content was loaded.</p>
+        <div id="blocked-url">Loading...</div>
+      </div>
 
-    <div class="stolen-box">
-      <div class="stolen-title">🔴 Here's what the attacker almost stole from YOU:</div>
-      <div class="stolen-sub">This data was heading silently to the attacker's server</div>
+      <div class="score-box">
+        <div class="gauge-lg">
+          <svg viewBox="0 0 120 120">
+            <circle class="track" cx="60" cy="60" r="52"></circle>
+            <circle class="fg" id="ring-fg" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"></circle>
+          </svg>
+          <div id="score">--</div>
+        </div>
+        <div class="score-label">THREAT SCORE / 100</div>
+        <div id="level">SCANNING</div>
+      </div>
+    </section>
+
+    <section class="stolen-box">
+      <div class="stolen-title">EXPOSURE PREVIEW &mdash; WHAT THE ATTACKER ALMOST TOOK</div>
+      <div class="stolen-sub">This data would have been sent silently to the attacker's server.</div>
       <div id="stolen-data"></div>
-    </div>
+    </section>
 
     <div class="safe-banner">
-      ✅ You were never at risk — ShieldNetX blocked it before a single byte loaded
+      <svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9.5"/><path d="M8 12.4l2.7 2.7L16 9.5"/>
+      </svg>
+      <div>You were never at risk. ShieldNetX blocked the connection before a single byte loaded.</div>
     </div>
 
-    <button id="report-btn">
-      🚨 Report This Attack to CERT-In India
-    </button>
-    <div class="proceed" id="proceed-btn">[ proceed to dangerous site anyway ]</div>
-  </div>
+    <div class="actions">
+      <button id="report-btn">REPORT THIS ATTACK TO CERT-IN INDIA</button>
+      <div class="proceed" id="proceed-btn">[ proceed to dangerous site anyway ]</div>
+    </div>
+  </main>
 
   <div id="report-modal">
     <div class="modal-box" id="modal-inner">
-      <div class="modal-icon" id="modal-icon">📡</div>
-      <div class="modal-title" id="modal-title">Filing Report...</div>
+      <div class="modal-icon" id="modal-icon"></div>
+      <div class="modal-title" id="modal-title">Filing Report</div>
       <div id="modal-status">Connecting to CERT-In servers...</div>
       <div id="modal-details"></div>
-      <button id="close-btn" style="display:none;margin-top:16px;width:100%;padding:12px;background:#00c853;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px">Close</button>
+      <button id="close-btn" style="display:none">CLOSE</button>
     </div>
   </div>
 
