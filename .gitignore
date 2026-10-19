@@ -5,3 +5,5 @@ __pycache__/
 .eslintcache
 logs/
 *.csv
+.venv/
+venv/
